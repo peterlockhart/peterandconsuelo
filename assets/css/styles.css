@@ -8,15 +8,25 @@
   --fade: 900ms;          /* carousel crossfade */
   --story-fade: 400ms;    /* story overlay fade */
   --story-delay: 250ms;   /* beat before the text follows the overlay in */
+  --chapter-fade: 800ms;  /* unread -> active, slow enough to catch while scrolling */
 
-  /* Dark theme. The chrome sits a touch lighter than the stage so the header
-     and thumbnail rail read as frame rather than photograph. */
-  --paper: #171410;      /* header + thumbnail rail */
-  --stage: #0b0908;      /* letterbox behind a contained photo */
-  --ink: #f0e9df;
-  --ink-soft: #a1968a;
-  --rule: #2b2521;
+  /* Dark theme. Header, carousel and thumbnail rail all share --stage, so the
+     chrome reads as one continuous surface with the photographs sitting on it.
+
+     The neutrals carry roughly half the red-to-blue spread they used to, so
+     they read as near-grey with a faint warm cast rather than as cream. The
+     accent keeps its full warmth and is the only saturated colour here — every
+     tan on the page comes from it. */
+  --paper: #171614;      /* raised surface: the story overlay */
+  --stage: #0c0b0a;      /* the page surface, and the letterbox behind a photo */
+  --ink: #ebe8e3;
+  --ink-soft: #9b958d;
+  --rule: #2c2a27;       /* hairline borders */
   --accent: #cba97b;
+
+  /* The timeline rail reads as a faint sibling of its markers rather than as a
+     border, so it is mixed from the marker colour instead of using --rule. */
+  --rail-line: color-mix(in srgb, var(--ink-soft) 35%, transparent);
 
   /* The floating controls sit on photographs, not on the theme background, so
      they carry their own scrim and stay dark whichever way the theme goes. */
@@ -40,7 +50,7 @@ body {
   grid-template-rows: var(--header-h) 1fr;
   height: 100dvh;
   overflow: hidden;
-  background: var(--paper);
+  background: var(--stage);
   color: var(--ink);
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
@@ -67,8 +77,7 @@ body {
   width: 100%;
   height: var(--header-h);
   padding-inline: clamp(1rem, 4vw, 2.5rem);
-  border-bottom: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--stage);
 
   /* Above the story overlay, so "Close Story" stays clickable while it is up. */
   position: relative;
@@ -159,6 +168,7 @@ body {
      length of the fade, then snaps out. Two opaque layers crossfading means no
      dip to the background mid-transition — and no JS driving the animation. */
   transition: opacity 0s linear var(--fade);
+  container-type: inline-size;
 }
 
 .slide.is-active {
@@ -167,11 +177,25 @@ body {
   transition: opacity var(--fade) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Sizing the <img> to the photo rather than to the stage. object-fit: contain
+   letterboxes *inside* a full-stage element box, so a border-radius there would
+   round invisible corners. Capping both axes instead makes the element the photo
+   — same "fit without cropping" result, but now the corners are the real ones. */
 .slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;    /* never crop */
+  /* Absolute centring: for a replaced element, width/height:auto resolve to the
+     intrinsic size, the max-* caps then shrink it to fit while preserving the
+     ratio, and margin:auto shares out what is left. The containing block has a
+     definite height, so unlike a grid/flex track the percentages resolve. */
+  position: absolute;
+  inset: 0;
+  margin: auto;
+
   display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: clamp(0px, (100cqi - 100%) * 1e5, 12px);
 }
 
 /* --------------------------------------------------------------------------
@@ -242,8 +266,7 @@ body {
 
 .thumbs {
   min-width: 0;
-  border-top: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--stage);
 }
 
 .thumbs__track {
@@ -347,8 +370,13 @@ body {
 }
 
 .story__inner {
+  --rail: 34px;                  /* gutter the timeline lives in */
+  --marker: 11px;
+
+  position: relative;
   max-width: 600px;
   margin-inline: auto;           /* centres the column once past 600px */
+  padding-inline-start: var(--rail);
   text-align: left;
   font-family: var(--serif);
   font-size: clamp(1rem, 2.4vw, 1.125rem);
@@ -366,10 +394,32 @@ body {
 }
 
 .story__inner p { margin: 0 0 1.25rem; }
-.story__inner p:last-child { margin-bottom: 0; }
+.chapter:last-child p:last-child { margin-bottom: 0; }
 
-.story__dates {
-  margin-bottom: 2rem;
+.chapter { margin-block-end: 100px; }
+.chapter:last-child { margin-block-end: 0; }
+
+.chapter__image {
+  display: block;
+  width: 100%;
+  /* height:auto is required — the width/height attributes become presentational
+     hints, and with both dimensions definite the aspect-ratio is ignored. */
+  height: auto;
+  aspect-ratio: 16 / 9;      /* reserves the box before the file loads */
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--stage);
+}
+
+/* The image now sets the space above a heading, so it replaces the heading's
+   own top margin rather than adding to it. */
+.chapter__image + .story__heading { margin-block-start: 20px; }
+
+/* A dateline now sits under each heading rather than once at the top,
+   so it takes the same rhythm as a paragraph. */
+.story__inner .story__dates {
+  margin-block-start: -10px;
+  margin-bottom: 1.25rem;
   font-family: var(--sans);
   font-size: 0.78rem;
   line-height: 2;
@@ -382,10 +432,80 @@ body {
 .story__dates span { white-space: nowrap; }
 
 .story__heading {
+  position: relative;            /* anchor for this chapter's marker */
   margin: 2.25rem 0 0.85rem;
   font-size: 1.3em;
   font-weight: 400;
   letter-spacing: 0.03em;
+}
+
+/* --- timeline -------------------------------------------------------------
+
+   The rail runs the height of the copy; each heading punches a marker over it.
+   Both are positioned half a line box down (0.85em of a 1.7 line-height), so
+   a marker centres on its heading's first line however the heading wraps.
+   -------------------------------------------------------------------------- */
+
+.story__inner::before {
+  content: '';
+  position: absolute;
+  /* Runs from the top of the first image down to the last marker. The end
+     depends on rendered image heights, so carousel.js measures it; the fallback
+     spans the whole column if that never runs. */
+  top: 0;
+  height: var(--rail-height, 100%);
+  inset-inline-start: calc((var(--marker) - 1px) / 2);
+  width: 1px;
+  background: var(--rail-line);
+}
+
+.story__heading::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(var(--rail) * -1);
+  top: 0.85em;
+  transform: translateY(-50%);
+
+  width: var(--marker);
+  height: var(--marker);
+  /* --rule is right for the hairline rail but too faint to read as a circle,
+     so an unvisited marker borrows the muted text colour instead. */
+  border: 1px solid var(--ink-soft);
+  border-radius: 50%;
+  background: var(--paper);      /* masks the rail running behind it */
+
+  transition: background-color var(--chapter-fade) ease,
+              border-color var(--chapter-fade) ease;
+}
+
+.chapter.is-active .story__heading::before {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Copy in an unread chapter sits back; the active one comes forward.
+
+   Dimmed through the text colour rather than `opacity`, because the timeline
+   marker is a ::before of the heading — an opacity here would fade the marker
+   with it, and dimming the markers drops them below ~1.3:1 and they
+   stop reading. */
+.chapter .story__heading,
+.chapter p {
+  color: color-mix(in srgb, var(--ink) 40%, transparent);
+  transition: color var(--chapter-fade) ease;
+}
+
+.chapter .story__dates {
+  color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.chapter.is-active .story__heading,
+.chapter.is-active p {
+  color: var(--ink);
+}
+
+.chapter.is-active .story__dates {
+  color: var(--accent);
 }
 
 /* --------------------------------------------------------------------------
@@ -393,6 +513,6 @@ body {
    -------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --fade: 1ms; --story-fade: 1ms; --story-delay: 0s; }
+  :root { --fade: 1ms; --story-fade: 1ms; --story-delay: 0s; --chapter-fade: 1ms; }
   * { scroll-behavior: auto !important; }
 }

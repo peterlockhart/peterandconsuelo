@@ -221,7 +221,69 @@
     open ? suspend() : resume();
 
     if (!open) storyEl.scrollTop = 0;
+    else { measureRail(); updateActiveChapter(); }
   }
+
+  /* Scroll spy: fill the marker of whichever chapter is currently being read.
+     The overlay scrolls internally, so this measures against the panel rather
+     than the window. */
+
+  var chapters = [].slice.call(storyEl.querySelectorAll('.chapter'));
+  var storyInner = storyEl.querySelector('.story__inner');
+
+  /* The rail starts at the very top of the column — level with the first
+     chapter's image — and stops at the last marker. That end point depends on
+     the rendered image heights, so it has to be measured rather than guessed. */
+  function measureRail() {
+    if (!chapters.length || !storyInner) return;
+
+    var heads = chapters.map(function (ch) { return ch.querySelector('.story__heading'); });
+    var base = storyInner.getBoundingClientRect().top;
+    var half = parseFloat(getComputedStyle(heads[0]).lineHeight) / 2;
+    var last = heads[heads.length - 1].getBoundingClientRect().top - base + half;
+
+    storyInner.style.setProperty('--rail-height', last + 'px');
+  }
+
+  function updateActiveChapter() {
+    if (!chapters.length) return;
+
+    var tops = chapters.map(function (ch) { return ch.offsetTop; });
+    var span = tops[tops.length - 1] - tops[0];
+    var maxScroll = storyEl.scrollHeight - storyEl.clientHeight;
+    var progress = maxScroll > 2 ? storyEl.scrollTop / maxScroll : 0;
+
+    /* Walk a reading position across the chapters in proportion to how far
+       through the panel we have scrolled.
+
+       Measuring against a fixed trigger line near the top of the panel does not
+       work here: the copy only just overflows on most screens (149px of travel
+       against ~180px between chapters), so the middle chapters would never
+       reach the line and their markers would never fill. Mapping progress onto
+       the chapters' own offsets makes every marker reachable at any height,
+       and still gives a long chapter a proportionally longer turn. */
+    var readPos = tops[0] + progress * span;
+
+    var active = 0;
+    for (var i = 0; i < tops.length; i++) {
+      if (tops[i] <= readPos + 1) active = i;
+    }
+
+    chapters.forEach(function (ch, i) {
+      ch.classList.toggle('is-active', i === active);
+    });
+  }
+
+  var spyTicking = false;
+  storyEl.addEventListener('scroll', function () {
+    if (spyTicking) return;
+    spyTicking = true;
+    requestAnimationFrame(function () { updateActiveChapter(); spyTicking = false; });
+  });
+  window.addEventListener('resize', function () {
+    measureRail();
+    updateActiveChapter();
+  });
 
   storyBtn.addEventListener('click', function () { setStory(!storyOpen); });
 
