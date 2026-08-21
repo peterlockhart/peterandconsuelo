@@ -140,9 +140,18 @@ body {
   inset: 0;
   opacity: 0;
 
-  /* A slide that has just lost .is-active holds at full opacity underneath the
-     incoming one for the length of the fade, then snaps out. That gives a true
-     crossfade with no dip to the background colour — and needs no JS. */
+  /* Each slide carries its own opaque backdrop, and this is load-bearing.
+     Photos are `contain`ed, so an incoming portrait does not cover an outgoing
+     landscape — roughly one transition in five leaves a strip down each side.
+     Without a backdrop those strips keep showing the previous photo at full
+     opacity for the whole fade and then blink out. With it, the incoming layer
+     is opaque edge to edge: the strips crossfade to the stage colour, and the
+     outgoing slide is completely hidden by the time it snaps out. */
+  background: var(--stage);
+
+  /* The outgoing slide holds opaque *underneath* the incoming one for the
+     length of the fade, then snaps out. Two opaque layers crossfading means no
+     dip to the background mid-transition — and no JS driving the animation. */
   transition: opacity 0s linear var(--fade);
 }
 
