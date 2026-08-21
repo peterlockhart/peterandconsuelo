@@ -196,12 +196,42 @@
     document.hidden ? suspend() : resume();
   });
 
+  /* Space has to activate a control the user tabbed to — that is what it means
+     to a keyboard user, and taking it away would break the buttons. But a
+     button merely *left* focused by a mouse click must not swallow the
+     shortcut, which is the common case here: click a thumbnail, then press
+     Space expecting the slideshow to pause.
+
+     :focus-visible cannot make that call from inside a keydown handler — the
+     browser switches to keyboard modality as soon as a key goes down, so a
+     mouse-focused button already matches by the time we are asked. Tracking
+     how the focus was actually acquired is the reliable test. */
+  var focusCameFromKeyboard = false;
+
+  document.addEventListener('pointerdown', function () {
+    focusCameFromKeyboard = false;
+  }, true);
+
   document.addEventListener('keydown', function (e) {
-    if (storyOpen) return;                                     // arrows belong to the story while it is up
-    if (e.target.closest('button') && e.key === ' ') return;   // let buttons be buttons
-    if (e.key === 'ArrowRight') { go(current + 1); restart(); }
+    if (e.key === 'Tab') focusCameFromKeyboard = true;   // the only key that moves focus
+  }, true);
+
+  function focusedControlWantsSpace() {
+    var el = document.activeElement;
+    return !!el && el.tagName === 'BUTTON' && focusCameFromKeyboard;
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (storyOpen) return;             // while the story is up, the keys are its own
+
+    if (e.key === ' ' || e.key === 'Spacebar') {
+      if (focusedControlWantsSpace()) return;
+      playing ? pause() : play();
+    }
+    else if (e.key === 'ArrowRight') { go(current + 1); restart(); }
     else if (e.key === 'ArrowLeft') { go(current - 1); restart(); }
     else return;
+
     e.preventDefault();
   });
 
