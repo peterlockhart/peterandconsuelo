@@ -1,0 +1,8 @@
+.DS_Store
+
+# Master photos live outside the repo (see scripts/build-images.sh).
+# Only the optimised derivatives in assets/photos/ are committed.
+/photos/
+
+# Local Claude Code settings
+.claude/settings.local.json

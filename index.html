@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Peter &amp; Consuelo</title>
+<meta name="description" content="Peter &amp; Consuelo — our wedding.">
+<meta name="theme-color" content="#171410">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' x='16' text-anchor='middle' font-size='22' font-family='Georgia,serif' fill='%23cba97b'%3E%26amp;%3C/text%3E%3C/svg%3E">
+
+<link rel="stylesheet" href="assets/css/styles.css">
+
+<!-- Blocking, ~8KB: the manifest must exist before the first paint so we can
+     preload the opening photo and size the stage without a layout shift. -->
+<script src="assets/js/photos.js"></script>
+<script>
+  // Shared by the preload below and by carousel.js, so the <link> and the <img>
+  // always describe the same candidates — otherwise the browser can preload one
+  // variant and then fetch a different one.
+  //
+  // The build caps each photo's LONG edge, so a portrait variant is narrower
+  // than the cap; width descriptors have to state the real width.
+  window.slideSrcset = function (photo) {
+    var id = photo[0], ratio = photo[1] / photo[2];
+    var w = function (cap) { return ratio >= 1 ? cap : Math.round(cap * ratio); };
+    return 'assets/photos/md/' + id + '.webp ' + w(1000) + 'w, ' +
+           'assets/photos/lg/' + id + '.webp ' + w(1800) + 'w';
+  };
+
+  // Give the LCP image a head start — requested before the parser even
+  // reaches the carousel markup.
+  (function () {
+    var first = window.PHOTOS && window.PHOTOS[0];
+    if (!first) return;
+    var l = document.createElement('link');
+    l.rel = 'preload';
+    l.as = 'image';
+    l.imageSrcset = window.slideSrcset(first);
+    l.imageSizes = '100vw';
+    l.fetchPriority = 'high';
+    document.head.appendChild(l);
+  })();
+</script>
+
+<script src="assets/js/carousel.js" defer></script>
+</head>
+
+<body>
+
+<header class="site-header">
+  <p class="brand">Peter &amp; Consuelo</p>
+  <button class="story-button" type="button" data-story>Our Story</button>
+</header>
+
+<main class="carousel" aria-roledescription="carousel" aria-label="Wedding photographs">
+
+  <div class="stage">
+    <!-- Slides are injected here by carousel.js. Only the current photo and
+         its immediate neighbours ever carry a src. -->
+    <ul class="slides" data-slides></ul>
+
+    <button class="playpause" type="button" data-playpause>
+      <span class="playpause__icon" aria-hidden="true"></span>
+      <span class="visually-hidden" data-playpause-label>Pause slideshow</span>
+    </button>
+
+    <p class="counter" aria-hidden="true"><span data-counter>1</span> / <span data-total>1</span></p>
+  </div>
+
+  <div class="thumbs">
+    <ul class="thumbs__track" data-thumbs aria-label="Choose a photograph"></ul>
+  </div>
+
+</main>
+
+<noscript>
+  <p class="noscript">This slideshow needs JavaScript to run.</p>
+</noscript>
+
+</body>
+</html>

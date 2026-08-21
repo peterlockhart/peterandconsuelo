@@ -1,0 +1,305 @@
+/* ==========================================================================
+   Peter & Consuelo
+   ========================================================================== */
+
+:root {
+  --header-h: 60px;
+  --thumb-h: 76px;
+  --fade: 900ms;
+
+  /* Dark theme. The chrome sits a touch lighter than the stage so the header
+     and thumbnail rail read as frame rather than photograph. */
+  --paper: #171410;      /* header + thumbnail rail */
+  --stage: #0b0908;      /* letterbox behind a contained photo */
+  --ink: #f0e9df;
+  --ink-soft: #a1968a;
+  --rule: #2b2521;
+  --accent: #cba97b;
+
+  /* The floating controls sit on photographs, not on the theme background, so
+     they carry their own scrim and stay dark whichever way the theme goes. */
+  --scrim: #000;
+  --on-scrim: #fff;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  /* Header + carousel fill the viewport exactly; the page itself never scrolls. */
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  height: var(--header-h);
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.05rem, 2.6vw, 1.45rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.story-button {
+  flex: none;
+  padding: 0.5rem 1.15rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.story-button:hover,
+.story-button:focus-visible {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+/* --------------------------------------------------------------------------
+   Carousel shell
+   -------------------------------------------------------------------------- */
+
+.carousel {
+  display: grid;
+  grid-template-rows: 1fr auto;
+
+  /* Grid and flex items default to min-width/height:auto, which would let the
+     189-item thumbnail track set the page width (~17,000px). Both axes have to
+     be allowed to shrink so the strip scrolls instead of stretching the page. */
+  min-height: 0;
+  min-width: 0;
+  background: var(--stage);
+}
+
+.stage {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Slides — CSS-only crossfade
+   -------------------------------------------------------------------------- */
+
+.slides {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+
+  /* A slide that has just lost .is-active holds at full opacity underneath the
+     incoming one for the length of the fade, then snaps out. That gives a true
+     crossfade with no dip to the background colour — and needs no JS. */
+  transition: opacity 0s linear var(--fade);
+}
+
+.slide.is-active {
+  opacity: 1;
+  z-index: 2;
+  transition: opacity var(--fade) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;    /* never crop */
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Floating controls
+   -------------------------------------------------------------------------- */
+
+.playpause {
+  position: absolute;
+  z-index: 3;
+  inset-block-end: clamp(0.75rem, 2vw, 1.25rem);
+  inset-inline-end: clamp(0.75rem, 2vw, 1.25rem);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--scrim) 55%, transparent);
+  color: var(--on-scrim);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+
+.playpause:hover,
+.playpause:focus-visible {
+  background: color-mix(in srgb, var(--scrim) 78%, transparent);
+  transform: scale(1.06);
+}
+
+/* Pause glyph: two bars, drawn with a border. Flips to a triangle when paused. */
+.playpause__icon {
+  width: 12px;
+  height: 14px;
+  border-inline: 4px solid currentColor;
+  transition: border-width 160ms ease;
+}
+
+.carousel[data-playing="false"] .playpause__icon {
+  width: 0;
+  height: 0;
+  border-inline: 0;
+  border-block: 7px solid transparent;
+  border-inline-start: 12px solid currentColor;
+  margin-inline-start: 3px;
+}
+
+.counter {
+  position: absolute;
+  z-index: 3;
+  inset-block-end: clamp(0.75rem, 2vw, 1.25rem);
+  inset-inline-start: clamp(0.75rem, 2vw, 1.25rem);
+  margin: 0;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--scrim) 55%, transparent);
+  color: var(--on-scrim);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(6px);
+}
+
+/* --------------------------------------------------------------------------
+   Thumbnail strip
+   -------------------------------------------------------------------------- */
+
+.thumbs {
+  min-width: 0;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.thumbs__track {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px clamp(0.5rem, 2vw, 1rem);
+  list-style: none;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+
+.thumbs__track::-webkit-scrollbar { height: 6px; }
+.thumbs__track::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--rule);
+}
+
+.thumb {
+  flex: none;
+  scroll-snap-align: center;
+}
+
+.thumb button {
+  display: block;
+  height: var(--thumb-h);
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: var(--stage);
+  cursor: pointer;
+  overflow: hidden;
+  opacity: 0.55;
+  outline-offset: 2px;
+  transition: opacity 220ms ease, box-shadow 220ms ease;
+}
+
+.thumb button:hover,
+.thumb button:focus-visible { opacity: 1; }
+
+.thumb button[aria-current="true"] {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.thumb img {
+  display: block;
+  height: 100%;
+  width: auto;
+  object-fit: cover;
+}
+
+.noscript {
+  position: absolute;
+  inset-block-start: calc(var(--header-h) + 2rem);
+  inset-inline: 0;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — no crossfade, and autoplay starts paused (see carousel.js)
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --fade: 1ms; }
+  * { scroll-behavior: auto !important; }
+}
