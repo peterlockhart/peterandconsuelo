@@ -42,36 +42,21 @@ falls back to the near-black stage colour.
 | `assets/js/carousel.js` | Carousel state: current slide, autoplay, image hydration |
 | `assets/js/photos.js` | **Generated.** `window.PHOTOS = [[id, width, height], …]` |
 | `assets/photos/{thumb,md,lg}/` | **Generated.** 189 WebP files each |
-| `scripts/build-images.sh` | Regenerates the two above from the masters |
+| `scripts/build-images.sh` | Regenerates the two above |
 | `.nojekyll` | Stops GitHub Pages running the files through Jekyll |
 
 ## Photos
 
-The 189 masters (~98 MB of 2048px JPEGs) are **deliberately not in this repo**.
-They live alongside it, untracked:
-
-```
-peterandconsuelo/                  ← this repo
-peterandconsuelo-photo-masters/    ← the masters
-```
-
-> [!IMPORTANT]
-> That folder is the only copy. It is not backed up by this repo, and it is not
-> in git history. Keep a copy somewhere else.
-
-Only the optimised derivatives are committed (~36 MB total). To regenerate them
-after adding or removing photos:
+The 189 photographs are committed as optimised WebP derivatives (~36 MB total).
+To rebuild them:
 
 ```sh
-./scripts/build-images.sh                 # uses ../peterandconsuelo-photo-masters
-./scripts/build-images.sh /path/to/photos # or point it somewhere else
-PHOTO_MASTERS=/path/to/photos ./scripts/build-images.sh
+./scripts/build-images.sh /path/to/photos
 ```
 
 Requires `cwebp` (`brew install webp`) and `sips` (built into macOS). The script
-is incremental — it skips any derivative that is already newer than its master,
-so re-running after adding a few photos is quick. It also rewrites
-`assets/js/photos.js`, so commit that alongside the new images.
+is incremental, so re-running after adding a few photos only does the new work.
+It also rewrites `assets/js/photos.js`, so commit that alongside the images.
 
 Three variants are produced, each capping the photo's **long** edge:
 
