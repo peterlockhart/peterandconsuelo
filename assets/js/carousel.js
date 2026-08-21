@@ -30,6 +30,7 @@
   var current = 0;
   var timer = null;
   var playing = false;
+  var storyOpen = false;
 
   function src(size, id) { return 'assets/photos/' + size + '/' + id + '.webp'; }
 
@@ -168,6 +169,19 @@
     timer = setInterval(next, INTERVAL);
   }
 
+  // Stop and start the timer without disturbing the user's play/pause choice —
+  // used for background tabs and while the story overlay is up.
+  function suspend() {
+    clearInterval(timer);
+    timer = null;
+  }
+
+  function resume() {
+    if (playing && !timer && !document.hidden && !storyOpen) {
+      timer = setInterval(next, INTERVAL);
+    }
+  }
+
   /* ----------------------------------------------------------------- wire */
 
   build();
@@ -179,20 +193,40 @@
 
   // Don't burn timers or decode images in a background tab.
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) {
-      clearInterval(timer);
-      timer = null;
-    } else if (playing && !timer) {
-      timer = setInterval(next, INTERVAL);
-    }
+    document.hidden ? suspend() : resume();
   });
 
   document.addEventListener('keydown', function (e) {
+    if (storyOpen) return;                                     // arrows belong to the story while it is up
     if (e.target.closest('button') && e.key === ' ') return;   // let buttons be buttons
     if (e.key === 'ArrowRight') { go(current + 1); restart(); }
     else if (e.key === 'ArrowLeft') { go(current - 1); restart(); }
     else return;
     e.preventDefault();
+  });
+
+  /* ------------------------------------------------------- story overlay */
+
+  var storyBtn = document.querySelector('[data-story]');
+  var storyEl = document.querySelector('[data-story-overlay]');
+
+  function setStory(open) {
+    storyOpen = open;
+    storyEl.classList.toggle('is-open', open);
+    storyBtn.setAttribute('aria-expanded', String(open));
+    storyBtn.textContent = open ? 'Close Story' : 'Our Story';
+
+    // The overlay is opaque, so advancing slides behind it would only fetch
+    // and decode photographs nobody can see.
+    open ? suspend() : resume();
+
+    if (!open) storyEl.scrollTop = 0;
+  }
+
+  storyBtn.addEventListener('click', function () { setStory(!storyOpen); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && storyOpen) setStory(false);
   });
 
   // Auto-moving content is opt-in for anyone who has asked for less motion.
