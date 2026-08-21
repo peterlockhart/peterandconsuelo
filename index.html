@@ -14,6 +14,34 @@
      preload the opening photo and size the stage without a layout shift. -->
 <script src="assets/js/photos.js"></script>
 <script>
+  // The slideshow always opens on this photograph, then plays the other 188 in
+  // a fresh random order on every visit. Pinned by id rather than by position
+  // so re-running the image build cannot quietly change which one opens.
+  //
+  // This runs before the preload below, so the <link> points at the photo that
+  // will actually be shown first.
+  (function () {
+    var photos = window.PHOTOS;
+    if (!photos || photos.length < 2) return;
+
+    var OPENS_WITH = '087A0717';
+
+    var at = 0;
+    for (var n = 0; n < photos.length; n++) {
+      if (photos[n][0] === OPENS_WITH) { at = n; break; }
+    }
+    var opener = photos.splice(at, 1)[0];
+
+    for (var i = photos.length - 1; i > 0; i--) {   // Fisher-Yates
+      var j = Math.floor(Math.random() * (i + 1));
+      var swap = photos[i];
+      photos[i] = photos[j];
+      photos[j] = swap;
+    }
+
+    photos.unshift(opener);
+  })();
+
   // Shared by the preload below and by carousel.js, so the <link> and the <img>
   // always describe the same candidates — otherwise the browser can preload one
   // variant and then fetch a different one.
