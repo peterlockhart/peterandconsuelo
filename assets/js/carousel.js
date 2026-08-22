@@ -240,8 +240,28 @@
   var storyBtn = document.querySelector('[data-story]');
   var storyEl = document.querySelector('[data-story-overlay]');
 
+  /* The chapter images stay src-less until the story is first opened.
+     `loading="lazy"` cannot do this on its own: the panel is visibility:hidden
+     but still sits at inset:0, so the browser counts the images as in-viewport
+     and fetches all of them on page load — ~900KB competing with the opening
+     photograph. Once the src is set, lazy loading does take over *within* the
+     panel, so the lower chapters still wait until they are scrolled to. */
+  var storyImagesRequested = false;
+
+  function loadStoryImages() {
+    if (storyImagesRequested) return;
+    storyImagesRequested = true;
+
+    var imgs = storyEl.querySelectorAll('.chapter__image[data-src]');
+    for (var i = 0; i < imgs.length; i++) {
+      imgs[i].src = imgs[i].getAttribute('data-src');
+      imgs[i].removeAttribute('data-src');
+    }
+  }
+
   function setStory(open) {
     storyOpen = open;
+    if (open) loadStoryImages();
     storyEl.classList.toggle('is-open', open);
     storyBtn.setAttribute('aria-expanded', String(open));
     storyBtn.textContent = open ? 'Close Story' : 'Our Story';
@@ -261,18 +281,21 @@
   var chapters = [].slice.call(storyEl.querySelectorAll('.chapter'));
   var storyInner = storyEl.querySelector('.story__inner');
 
-  /* The rail starts at the very top of the column — level with the first
-     chapter's image — and stops at the last marker. That end point depends on
-     the rendered image heights, so it has to be measured rather than guessed. */
+  /* The rail runs the full length of the story: from the top of the first
+     chapter's image down to the bottom of the last chapter's copy. Both ends
+     depend on rendered image heights and on how the text wraps, so the length
+     has to be measured rather than guessed. */
   function measureRail() {
     if (!chapters.length || !storyInner) return;
 
-    var heads = chapters.map(function (ch) { return ch.querySelector('.story__heading'); });
-    var base = storyInner.getBoundingClientRect().top;
-    var half = parseFloat(getComputedStyle(heads[0]).lineHeight) / 2;
-    var last = heads[heads.length - 1].getBoundingClientRect().top - base + half;
+    var lastChapter = chapters[chapters.length - 1];
+    var paragraphs = lastChapter.querySelectorAll('p');
+    var endsAt = paragraphs.length ? paragraphs[paragraphs.length - 1] : lastChapter;
 
-    storyInner.style.setProperty('--rail-height', last + 'px');
+    var base = storyInner.getBoundingClientRect().top;
+    var end = endsAt.getBoundingClientRect().bottom - base;
+
+    storyInner.style.setProperty('--rail-height', end + 'px');
   }
 
   function updateActiveChapter() {

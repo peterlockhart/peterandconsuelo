@@ -6,3 +6,6 @@
 
 # Local Claude Code settings
 .claude/settings.local.json
+
+# Story-image sources. Only the WebP derivatives are committed.
+assets/img/*.png
