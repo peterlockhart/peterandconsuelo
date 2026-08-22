@@ -21,8 +21,49 @@
 -->
 <meta name="theme-color" content="#0c0b0a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' x='16' text-anchor='middle' font-size='22' font-family='Georgia,serif' fill='%23cba97b'%3E%26amp;%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="preconnect" href="https://p.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/kto8ccm.css">
 <link rel="stylesheet" href="assets/css/styles.css">
+
+<!-- Hold the page behind the loading veil until the Typekit faces are ready to
+     use, so the type is only ever painted once.
+
+     This sits after the two stylesheets on purpose: a classic script does not
+     run until the CSS above it has loaded, which is what puts the @font-face
+     rules in place for document.fonts.load() to match against. -->
+<script>
+  (function () {
+    var root = document.documentElement;
+    root.classList.add('is-loading');
+
+    var lowered = false;
+    function lower() {
+      if (lowered) return;
+      lowered = true;
+      root.classList.remove('is-loading');
+    }
+
+    // Every combination the page actually sets. A face is only fetched once
+    // something asks for it, so naming them here starts the requests rather
+    // than waiting on the layout to reach the text.
+    var faces = ['300 1rem new-frank',
+                 '800 1rem new-frank',
+                 '400 1rem "dm-serif-display"'];
+
+    // Whatever happens — an old browser, a kit that fails to load, a network
+    // that stalls — the page is handed over inside a second and a half and the
+    // fallback stack carries it. A veil that never lifts is the worse bug.
+    setTimeout(lower, 1500);
+
+    if (!document.fonts || !document.fonts.load) { lower(); return; }
+
+    var pending = faces.map(function (face) { return document.fonts.load(face); });
+    Promise.all(pending)
+      .then(function () { return document.fonts.ready; })
+      .then(lower, lower);
+  })();
+</script>
 
 <!-- Blocking, ~8KB: the manifest must exist before the first paint so we can
      preload the opening photo and size the stage without a layout shift. -->
@@ -98,6 +139,12 @@
 </head>
 
 <body>
+
+<!-- Styled hidden and only shown while <html> carries .is-loading. -->
+<div class="loader" data-loader>
+  <div class="loader__ring" aria-hidden="true"></div>
+  <p class="visually-hidden" role="status">Loading&hellip;</p>
+</div>
 
 <header class="site-header">
   <p class="brand">Peter <span class="brand__amp">&amp;</span> Consuelo</p>

@@ -9,6 +9,7 @@
   --story-fade: 400ms;    /* story overlay fade */
   --story-delay: 250ms;   /* beat before the text follows the overlay in */
   --chapter-fade: 800ms;  /* unread -> active, slow enough to catch while scrolling */
+  --veil-fade: 450ms;     /* loading veil clearing off the page */
 
   /* Dark theme. Header, carousel and thumbnail rail all share --stage, so the
      chrome reads as one continuous surface with the photographs sitting on it.
@@ -69,6 +70,60 @@ body {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* --------------------------------------------------------------------------
+   Loading veil
+
+   Both faces come from Typekit, so an uncovered first paint sets the page in
+   the fallback stack and then reflows into new-frank and dm-serif-display a
+   moment later. The veil holds the page at the stage colour until the faces
+   are ready to use, then clears off.
+
+   It is hidden here and only shown once script puts .is-loading on <html>, so
+   a browser with JavaScript off never sits behind a veil that nothing is
+   coming to lift.
+   -------------------------------------------------------------------------- */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10;                   /* over the header, which is the top of the page stack */
+  display: grid;
+  place-items: center;
+  background: var(--stage);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  /* Clearing off: the veil has to stay painted for the whole fade, so
+     visibility only flips once the opacity transition has finished. */
+  transition: opacity var(--veil-fade) ease,
+              visibility 0s linear var(--veil-fade);
+}
+
+.is-loading .loader {
+  opacity: 1;
+  visibility: visible;
+  transition: none;              /* it is up from the first frame, never faded in */
+}
+
+.loader__ring {
+  width: 34px;
+  height: 34px;
+  border: 2px solid color-mix(in srgb, var(--ink-soft) 28%, transparent);
+  border-block-start-color: var(--accent);
+  border-radius: 50%;
+
+  /* Starts invisible and fades in on a delay: a warm cache has the faces ready
+     within a few frames, and a throbber that appears and leaves again inside
+     half a second is its own flicker. */
+  opacity: 0;
+  animation: loader-spin 900ms linear infinite,
+             loader-in 250ms ease 400ms forwards;
+}
+
+@keyframes loader-spin { to { transform: rotate(1turn); } }
+@keyframes loader-in   { to { opacity: 1; } }
 
 /* --------------------------------------------------------------------------
    Header
@@ -563,6 +618,12 @@ body {
    -------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --fade: 1ms; --story-fade: 1ms; --story-delay: 0s; --chapter-fade: 1ms; }
+  :root {
+    --fade: 1ms; --story-fade: 1ms; --story-delay: 0s; --chapter-fade: 1ms;
+    --veil-fade: 1ms;
+  }
   * { scroll-behavior: auto !important; }
+
+  /* The ring still appears, it just no longer turns. */
+  .loader__ring { animation: loader-in 250ms ease 400ms forwards; }
 }
