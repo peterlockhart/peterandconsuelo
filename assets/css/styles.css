@@ -22,7 +22,8 @@
   --ink: #ebe8e3;
   --ink-soft: #9b958d;
   --rule: #2c2a27;       /* hairline borders */
-  --accent: #cba97b;
+  --accent: hsl(0, 58%, 52%);
+
 
   /* The timeline rail reads as a faint sibling of its markers rather than as a
      border, so it is mixed from the marker colour instead of using --rule. */
@@ -94,13 +95,16 @@ body {
   font-weight: 800;
   letter-spacing: 0.04em;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 /* The two names are set heavy; the ampersand between them is the one place in
    the header the display serif appears. */
 .brand__amp {
+  font-size: clamp(1.05rem, 3vw, 2.45rem);
   font-family: var(--display);
   font-weight: 400;
+  color: var(--accent);
 }
 
 .story-button {
