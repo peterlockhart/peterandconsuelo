@@ -237,7 +237,11 @@ body {
      length of the fade, then snaps out. Two opaque layers crossfading means no
      dip to the background mid-transition — and no JS driving the animation. */
   transition: opacity 0s linear var(--fade);
-  container-type: inline-size;
+
+  /* Sized by `inset: 0`, so both axes are already independent of the photo
+     inside — `size` rather than `inline-size` because the corner rounding
+     below has to measure the stage's height as well as its width. */
+  container-type: size;
 }
 
 .slide.is-active {
@@ -264,7 +268,26 @@ body {
   max-height: 100%;
   width: auto;
   height: auto;
-  border-radius: clamp(0px, (100cqi - 100%) * 1e5, 12px);
+
+  /* Rounded corners only while the photo is letterboxed at the sides. Once it
+     runs the full width of the stage its corners are the page's corners, and
+     rounding them cuts a notch out of the layout.
+
+     `100cqb * --ratio` is how wide this photo would be if it were the one
+     filling the stage's height; if the stage is wider than that, the height is
+     what limits the photo and bars appear either side. The `* 1e5` turns that
+     comparison into a step — any positive difference saturates the clamp at
+     12px, zero or less floors it at 0.
+
+     Measured against the photo's ratio rather than against its own `100%`
+     width, which is what an earlier pass did: a single border-radius value
+     sets both the horizontal and the vertical radius, and a percentage in the
+     vertical one resolves against the element's HEIGHT. That made the vertical
+     half read `stage width - photo height`, which goes negative on any photo
+     standing taller than the stage is wide — every portrait on a phone. A
+     corner whose radius is 0 in either axis is a square corner, so the whole
+     rounding collapsed while the photo was still nowhere near full width. */
+  border-radius: clamp(0px, (100cqi - 100cqb * var(--ratio)) * 1e5, 12px);
 }
 
 /* --------------------------------------------------------------------------

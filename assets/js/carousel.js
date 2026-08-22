@@ -54,6 +54,10 @@
       // --- slide: an empty <img>; hydrate() supplies the src when it is near
       var li = document.createElement('li');
       li.className = 'slide';
+      // The photo's proportions, for the corner rounding in CSS: the stylesheet
+      // needs them to work out whether this photo is letterboxed at the sides
+      // or running edge to edge, and CSS cannot read an image's own ratio.
+      li.style.setProperty('--ratio', String(w / h));
       var img = document.createElement('img');
       img.width = w;
       img.height = h;
