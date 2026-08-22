@@ -7,7 +7,6 @@ belong to; move finished ones to **Done** with the date.
 
 - [ ] Fix border-radius on slide images 
 - [ ] Credit the photographer
-- [ ] Add the ability to click on the left or right side of the carousel slides to go previous or next
 - [ ] When the carousel is playing, don't change the position of the thumbs until the user has stopped scrolling for 5 seconds. Right now, it feels like your fighting the auto scrolling of the thumbs if you're looking for another photo while the carousel is playing. 
 
 ## Our Story overlay
@@ -44,7 +43,6 @@ belong to; move finished ones to **Done** with the date.
 ## Misc
 
 - [ ] Create an Open Graph image
-- [ ] Add Open Graph meta tags
 
 ## Ideas / maybe
 
@@ -55,4 +53,5 @@ belong to; move finished ones to **Done** with the date.
 
 ## Done
 
-- [x] _nothing yet_
+- [x] Add Open Graph meta tags
+- [x] Add the ability to click on the left or right side of the carousel slides to go previous or next

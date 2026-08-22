@@ -209,6 +209,25 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Click zones
+   -------------------------------------------------------------------------- */
+
+/* Half the stage each, over the slides. z-index matches the floating controls
+   rather than beating them: the play/pause button comes later in the source,
+   so at an equal z-index it paints on top and keeps its own hit area. */
+.stage__nav {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+}
+
+.stage__nav-zone {
+  flex: 1 1 50%;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
    Floating controls
    -------------------------------------------------------------------------- */
 
@@ -268,6 +287,10 @@ body {
   letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
   backdrop-filter: blur(6px);
+
+  /* Decorative, and it sits inside the "previous" click zone — a click that
+     lands on it should still step the slideshow back. */
+  pointer-events: none;
 }
 
 /* --------------------------------------------------------------------------

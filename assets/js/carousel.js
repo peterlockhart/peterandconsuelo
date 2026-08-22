@@ -191,6 +191,18 @@
     playing ? pause() : play();
   });
 
+  /* Click zones over the photograph — left half back, right half forward.
+     go() takes the index modulo the run, so both ends wrap and the carousel
+     loops in either direction. restart() gives the incoming slide a full turn
+     without disturbing the user's play/pause choice, matching the arrow keys. */
+  [].forEach.call(document.querySelectorAll('[data-nav]'), function (zone) {
+    var step = zone.getAttribute('data-nav') === 'prev' ? -1 : 1;
+    zone.addEventListener('click', function () {
+      go(current + step);
+      restart();
+    });
+  });
+
   // Don't burn timers or decode images in a background tab.
   document.addEventListener('visibilitychange', function () {
     document.hidden ? suspend() : resume();

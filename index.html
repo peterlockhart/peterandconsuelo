@@ -112,6 +112,16 @@
          its immediate neighbours ever carry a src. -->
     <ul class="slides" data-slides></ul>
 
+    <!-- Invisible click zones over the photograph: the left half steps back,
+         the right half forward, and both wrap around the ends of the run.
+         Pointer-only, and hidden from assistive tech on purpose — the arrow
+         keys and the labelled thumbnail strip are the accessible equivalents,
+         so exposing these would just add two unlabelable duplicates. -->
+    <div class="stage__nav" aria-hidden="true">
+      <div class="stage__nav-zone" data-nav="prev"></div>
+      <div class="stage__nav-zone" data-nav="next"></div>
+    </div>
+
     <button class="playpause" type="button" data-playpause>
       <span class="playpause__icon" aria-hidden="true"></span>
       <span class="visually-hidden" data-playpause-label>Pause slideshow</span>
