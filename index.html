@@ -11,16 +11,28 @@
 <meta property="og:url" content="https://peterandconsuelo.com/">
 <meta property="og:site_name" content="Peter &amp; Consuelo">
 <meta property="og:title" content="Peter &amp; Consuelo">
-<meta property="og:description" content="Peter &amp; Consuelo — our wedding.">
+<meta property="og:description" content="Peter &amp; Consuelo — August 24, 2020">
 <meta property="og:locale" content="en_US">
-<!-- Waiting on the share image. Needs an absolute URL, 1200x630, under 5MB.
-<meta property="og:image" content="https://peterandconsuelo.com/assets/img/og-image.jpg">
+<!-- Absolute URL on purpose: a scraper has no page to resolve a relative one
+     against. 1200x630 exactly, which is the ratio every platform crops to. -->
+<meta property="og:image" content="https://peterandconsuelo.com/assets/img/petco-preview.jpg">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Peter and Consuelo on their wedding day">
--->
+<meta property="og:image:alt" content="Peter and Consuelo on their wedding day, with their names across the photograph">
+
+<!-- X reads the Open Graph tags above for the title, description and image, so
+     only the two things it has no og: equivalent for are repeated here: which
+     shape of card to draw, and the alt text (it ignores og:image:alt). Without
+     the card type a 1200x630 image is cropped to a small square thumbnail. -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="Peter and Consuelo on their wedding day, with their names across the photograph">
+
 <meta name="theme-color" content="#0c0b0a">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' x='16' text-anchor='middle' font-size='22' font-family='Georgia,serif' fill='%23cba97b'%3E%26amp;%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png">
+<!-- iOS adds its own rounded mask and its own gloss; the file is just the
+     artwork, at the 180px it wants. -->
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="preconnect" href="https://p.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/kto8ccm.css">

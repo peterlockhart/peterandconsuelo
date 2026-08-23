@@ -9,3 +9,10 @@
 
 # Story-image sources. Only the WebP derivatives are committed.
 assets/img/*.png
+
+# ...with two exceptions. These are not sources for anything — they are the
+# shipped assets themselves, and both have to be fetchable in production or
+# the browser tab loses its icon and every shared link unfurls blank. PNG
+# rather than WebP on purpose: link scrapers are inconsistent about WebP.
+!assets/img/favicon.png
+!assets/img/apple-touch-icon.png
