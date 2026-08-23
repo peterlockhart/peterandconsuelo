@@ -15,8 +15,6 @@ belong to; move finished ones to **Done** with the date.
 ## Our Story overlay
 
 - [ ] Adjust the background color
-- [ ] Update the chapter copy in the paragraph tags.
-- [ ] Add a final chapter of "Today" that uses some dynamic copy based on the current dates (eg: after 6 and 2 months)
 
 ## Header / branding
 
@@ -49,7 +47,6 @@ belong to; move finished ones to **Done** with the date.
 
 ## Ideas / maybe
 
-- Add a mini two-photo carousel on each story chapter image to switch between a photo of us and a photo of the location. 
 - Consider ways to incorporate red and the trim pattern from Consuelo's dress. 
 
 ## Done
@@ -67,3 +64,6 @@ belong to; move finished ones to **Done** with the date.
 - [x] Remove the blue focus outline on the play/pause button
 - [x] Create an Open Graph image
 - [x] Update the favicon
+- [x] Update the chapter copy in the paragraph tags.
+- [x] Add a final chapter of "Today" that uses some dynamic copy based on the current dates (eg: after 6 and 2 months)
+- [x] Add a mini two-photo carousel on each story chapter image to switch between a photo of us and a photo of the location. 

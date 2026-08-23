@@ -9,6 +9,7 @@
   --story-fade: 400ms;    /* story overlay fade */
   --story-delay: 250ms;   /* beat before the text follows the overlay in */
   --chapter-fade: 800ms;  /* unread -> active, slow enough to catch while scrolling */
+  --gallery-fade: 700ms;  /* crossfade inside a chapter's own carousel */
 
   /* Dark theme. Header, carousel and thumbnail rail all share --stage, so the
      chrome reads as one continuous surface with the photographs sitting on it.
@@ -269,7 +270,7 @@ body {
   font-family: var(--display);
   font-weight: 400;
   font-size: 1.45em;
-  font-size: clamp(1.75rem, 7.8vw, 6rem);
+  font-size: clamp(1.75rem, 8.8vw, 6rem);
   color: #000;
 }
 
@@ -776,31 +777,113 @@ body {
 .chapter { margin-block-end: 100px; }
 .chapter:last-child { margin-block-end: 0; }
 
-.chapter__image {
-  display: block;
-  width: 100%;
-  /* height:auto is required — the width/height attributes become presentational
-     hints, and with both dimensions definite the aspect-ratio is ignored. */
-  height: auto;
-  aspect-ratio: 16 / 9;      /* reserves the box before the file loads */
-  object-fit: cover;
+/* --- a chapter's own carousel --------------------------------------------
+
+   Every chapter's photographs share one frame and crossfade between each
+   other. The dots over the bottom of that frame are the whole of the
+   navigation: no arrows, no swipe, and nothing bound to the keyboard.
+
+   That last part is deliberate rather than lazy. This overlay sits on top of a
+   slideshow that already answers the arrow keys, and a second carousel
+   listening for them would make it a coin toss which one moved.
+   ------------------------------------------------------------------------- */
+
+.chapter__gallery {
+  position: relative;
+  aspect-ratio: 16 / 9;      /* reserves the box before any file loads */
   border-radius: 12px;
+  overflow: hidden;          /* clips the slides to the rounded corners */
   background: var(--stage);
   box-shadow: 0 2px 10px 2px var(--stage);
 
   /* Sits back with the rest of an unread chapter. Safe to use opacity here,
-     unlike on the dateline — no timeline marker hangs off this element. */
+     unlike on the heading — no timeline marker hangs off this element. */
   opacity: 0.5;
   transition: opacity var(--chapter-fade) ease;
 }
 
-.chapter.is-active .chapter__image {
-  opacity: 1;
+.chapter.is-active .chapter__gallery { opacity: 1; }
+
+.chapter__slides {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-/* The image now sets the space above a heading, so it replaces the heading's
-   own top margin rather than adding to it. */
-.chapter__image + .story__heading { margin-block-start: 20px; }
+/* The same crossfade the main slideshow uses: the outgoing photograph holds at
+   full opacity underneath the incoming one for the length of the fade and only
+   then snaps out, so the frame never dips towards the background mid-swap. */
+.chapter__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0s linear var(--gallery-fade);
+}
+
+.chapter__slide.is-active {
+  opacity: 1;
+  z-index: 2;
+  transition: opacity var(--gallery-fade) ease;
+}
+
+.chapter__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- the dots ---
+
+   Centred over the foot of the frame. Filled black when unselected, filled
+   white when selected, both inside the same black border, so the pair reads
+   the same way over a dark photograph as over a bright one. */
+.chapter__dots {
+  position: absolute;
+  z-index: 3;
+  inset-inline: 0;
+  inset-block-end: 6px;
+  display: flex;
+  justify-content: center;
+}
+
+/* The button is a 24px target; the marker inside it is the 12px circle that
+   actually shows. Sizing the two apart keeps the dots small without making
+   them a coin toss to hit on a phone. */
+.chapter__dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.chapter__dot::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 2px solid #000;
+  border-radius: 50%;
+  background: #000;
+  transition: background-color 200ms ease;
+}
+
+.chapter__dot[aria-current="true"]::before { background: #fff; }
+
+/* These are black and white by design, so the focus ring is too. It goes
+   outside the marker's own black border, which gives it an edge to read
+   against whatever photograph happens to be behind it. */
+.chapter__dot:focus-visible { outline: none; }
+.chapter__dot:focus-visible::before { box-shadow: 0 0 0 2px #fff; }
+
+/* The gallery now sets the space above a heading, so it replaces the
+   heading's own top margin rather than adding to it. */
+.chapter__gallery + .story__heading { margin-block-start: 20px; }
 
 /* A dateline now sits under each heading rather than once at the top,
    so it takes the same rhythm as a paragraph. */
@@ -909,6 +992,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   :root {
     --fade: 1ms; --story-fade: 1ms; --story-delay: 0s; --chapter-fade: 1ms;
+    --gallery-fade: 1ms;
   }
   * { scroll-behavior: auto !important; }
 

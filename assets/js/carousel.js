@@ -257,6 +257,7 @@
   // Don't burn timers or decode images in a background tab.
   document.addEventListener('visibilitychange', function () {
     document.hidden ? suspend() : resume();
+    syncGalleries();
   });
 
   /* Space has to activate a control the user tabbed to — that is what it means
@@ -349,14 +350,29 @@
      panel, so the lower chapters still wait until they are scrolled to. */
   var storyImagesRequested = false;
 
+  function hydrateChapter(chapter) {
+    var imgs = chapter.querySelectorAll('.chapter__image[data-src]');
+    for (var i = 0; i < imgs.length; i++) {
+      imgs[i].src = imgs[i].getAttribute('data-src');
+      imgs[i].removeAttribute('data-src');
+    }
+  }
+
   function loadStoryImages() {
     if (storyImagesRequested) return;
     storyImagesRequested = true;
 
-    var imgs = storyEl.querySelectorAll('.chapter__image[data-src]');
-    for (var i = 0; i < imgs.length; i++) {
-      imgs[i].src = imgs[i].getAttribute('data-src');
-      imgs[i].removeAttribute('data-src');
+    /* Only the opening photograph of each chapter. Every chapter now holds
+       several, and asking for all fifteen the moment the story opens would be
+       a few megabytes fetched to show five pictures. The rest of a chapter's
+       photographs wait until that chapter is the one being read — or until
+       someone taps one of its dots. */
+    for (var i = 0; i < chapters.length; i++) {
+      var first = chapters[i].querySelector('.chapter__image[data-src]');
+      if (first) {
+        first.src = first.getAttribute('data-src');
+        first.removeAttribute('data-src');
+      }
     }
   }
 
@@ -371,7 +387,7 @@
     // and decode photographs nobody can see.
     open ? suspend() : resume();
 
-    if (!open) storyEl.scrollTop = 0;
+    if (!open) { storyEl.scrollTop = 0; syncGalleries(); }
     else { measureRail(); updateActiveChapter(); }
   }
 
@@ -381,6 +397,94 @@
 
   var chapters = [].slice.call(storyEl.querySelectorAll('.chapter'));
   var storyInner = storyEl.querySelector('.story__inner');
+
+  /* --------------------------------------------- a chapter's own carousel */
+
+  var GALLERY_INTERVAL = 4500;   // ms per photograph within a chapter
+
+  /* One per chapter that has more than one photograph. The dots are built from
+     however many slides the markup holds, so adding a photograph to a chapter
+     is an HTML edit and nothing else. */
+  function buildGallery(chapter) {
+    var root = chapter.querySelector('[data-gallery]');
+    if (!root) return null;
+
+    var slides = [].slice.call(root.querySelectorAll('.chapter__slide'));
+    if (slides.length < 2) return null;   // one photograph is not a carousel
+
+    var gallery = {
+      chapter: chapter, slides: slides, dots: [], at: 0, timer: null
+    };
+
+    var dotsEl = document.createElement('div');
+    dotsEl.className = 'chapter__dots';
+
+    slides.forEach(function (slide, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'chapter__dot';
+      dot.setAttribute('aria-label', 'Photograph ' + (i + 1) + ' of ' + slides.length);
+      if (i === 0) dot.setAttribute('aria-current', 'true');
+
+      dot.addEventListener('click', function () {
+        galleryShow(gallery, i);
+        // Give the chosen photograph a full turn rather than whatever was left
+        // of the one it interrupted.
+        if (gallery.timer) galleryPlay(gallery, true);
+      });
+
+      dotsEl.appendChild(dot);
+      gallery.dots.push(dot);
+    });
+
+    root.appendChild(dotsEl);
+    return gallery;
+  }
+
+  function galleryShow(gallery, index) {
+    index = (index + gallery.slides.length) % gallery.slides.length;
+    if (index === gallery.at) return;
+
+    // A dot can be pressed on a chapter nobody has read down to yet, whose
+    // later photographs have no src.
+    hydrateChapter(gallery.chapter);
+
+    gallery.slides[gallery.at].classList.remove('is-active');
+    gallery.dots[gallery.at].removeAttribute('aria-current');
+
+    gallery.slides[index].classList.add('is-active');
+    gallery.dots[index].setAttribute('aria-current', 'true');
+
+    gallery.at = index;
+  }
+
+  function galleryPlay(gallery, restart) {
+    if (gallery.timer && !restart) return;
+    clearInterval(gallery.timer);
+    gallery.timer = setInterval(function () {
+      galleryShow(gallery, gallery.at + 1);
+    }, GALLERY_INTERVAL);
+  }
+
+  function galleryStop(gallery) {
+    clearInterval(gallery.timer);
+    gallery.timer = null;
+  }
+
+  /* A chapter's carousel runs only while that chapter is the one being read,
+     and only while the story is up and the tab is in front of someone. Same
+     rule the slideshow behind it follows, and for the same reason: nothing
+     should be decoding photographs nobody is looking at. */
+  function syncGalleries() {
+    var running = storyOpen && !document.hidden && !reduceMotion;
+
+    galleries.forEach(function (gallery) {
+      if (running && gallery.chapter.classList.contains('is-active')) galleryPlay(gallery);
+      else galleryStop(gallery);
+    });
+  }
+
+  var galleries = chapters.map(buildGallery).filter(Boolean);
 
   /* The rail runs the full length of the story: from the top of the first
      chapter's image down to the bottom of the last chapter's copy. Both ends
@@ -426,6 +530,11 @@
     chapters.forEach(function (ch, i) {
       ch.classList.toggle('is-active', i === active);
     });
+
+    // Reading a chapter is what asks for the rest of its photographs, and what
+    // sets its carousel going.
+    hydrateChapter(chapters[active]);
+    syncGalleries();
   }
 
   var spyTicking = false;
