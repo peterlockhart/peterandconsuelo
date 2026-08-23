@@ -15,6 +15,7 @@
   var INTERVAL = 5000;   // ms per slide
   var WINDOW = 2;        // slides either side of current that get a src
   var EVICT = 4;         // beyond this distance, drop the src again
+  var THUMB_QUIET = 5000;   // ms of stillness before the strip follows again
 
   var carousel  = document.querySelector('.carousel');
   var slidesEl  = document.querySelector('[data-slides]');
@@ -124,9 +125,40 @@
     });
   }
 
+  /* ------------------------------------------------------ hands on the strip */
+
+  /* When was the strip last scrolled by a person? Autoplay uses this to leave
+     it alone: nudging along every five seconds while someone is reading the
+     strip drags it back out from under them, and it stops being a way to look
+     for a photograph and starts being something to fight. */
+  var thumbsTouchedAt = 0;
+
+  function thumbsInUse() {
+    return thumbsTouchedAt !== 0 && Date.now() - thumbsTouchedAt < THUMB_QUIET;
+  }
+
+  function thumbsTouched() { thumbsTouchedAt = Date.now(); }
+
+  /* Only the ways a person moves the strip themselves. Deliberately NOT the
+     `scroll` event: scrollIntoView below fires that too, so the strip would
+     read its own movement as a hand on it and, once nudged, would never follow
+     the slideshow again. A wheel or a finger cannot be raised by script. */
+  thumbsEl.addEventListener('wheel', thumbsTouched, { passive: true });
+  thumbsEl.addEventListener('touchmove', thumbsTouched, { passive: true });
+
+  /* The scrollbar, or a grab at the strip itself between two thumbnails.
+     A press that lands on a thumbnail is a choice of photograph rather than a
+     scroll, and go() is about to centre it anyway. */
+  thumbsEl.addEventListener('pointerdown', function (e) {
+    if (!e.target.closest('button')) thumbsTouched();
+  });
+
   /* -------------------------------------------------------------- movement */
 
-  function go(index) {
+  /* `auto` marks the advance as the slideshow's own doing rather than
+     something asked for. Only those defer to a hand on the strip — a move
+     someone made themselves still centres, because they made it. */
+  function go(index, auto) {
     index = (index + PHOTOS.length) % PHOTOS.length;
 
     hydrate(index);   // give the incoming image a src *before* it fades in
@@ -136,17 +168,20 @@
 
     thumbs[current].removeAttribute('aria-current');
     thumbs[index].setAttribute('aria-current', 'true');
-    thumbs[index].scrollIntoView({
-      behavior: reduceMotion ? 'auto' : 'smooth',
-      inline: 'center',
-      block: 'nearest'
-    });
+
+    if (!auto || !thumbsInUse()) {
+      thumbs[index].scrollIntoView({
+        behavior: reduceMotion ? 'auto' : 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    }
 
     current = index;
     if (counterEl) counterEl.textContent = String(index + 1);
   }
 
-  function next() { go(current + 1); }
+  function next() { go(current + 1, true); }
 
   /* -------------------------------------------------------------- autoplay */
 
