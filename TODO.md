@@ -6,7 +6,6 @@ belong to; move finished ones to **Done** with the date.
 ## Intro
 
 - [ ] Add in wedding dress trim slide in on the top and bottom at a slight angle
-- [ ] When Peter & Consuelo fade out of the intro, also animate the text to slide down slightly.
 
 
 ## Slideshow
@@ -69,3 +68,4 @@ belong to; move finished ones to **Done** with the date.
 - [x] Add a final chapter of "Today" that uses some dynamic copy based on the current dates (eg: after 6 and 2 months)
 - [x] Add a mini two-photo carousel on each story chapter image to switch between a photo of us and a photo of the location. 
 - [x] On mobile (small width browsers), stack the intro words so the block of text is centered but the text within it is on left aligned and broken into two lines: Peter & / Consuelo
+- [x] When Peter & Consuelo fade out of the intro, also animate the text to slide down slightly.

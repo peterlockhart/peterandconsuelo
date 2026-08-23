@@ -85,8 +85,8 @@ body {
 
    The beats run back to back, each one starting where the last finished:
 
-     hold -> name-in -> name-hold -> photo-in -> photo-hold -> name-out
-          -> settle-hold -> round -> morph   (~9.5s in total)
+     hold -> name-in -> name-hold -> photo-in -> photo-hold
+          -> name-out + round -> morph       (~9.2s in total)
 
    `round` is a beat of its own, and deliberately so. It used to run inside the
    morph, which is where the eye cannot see it: 12px of corner arriving while
@@ -96,10 +96,14 @@ body {
    On a narrow screen the slide has no rounding to match, so the beat is
    skipped and the sequence is that much shorter.
 
-   Two of them overlap rather than follow. `throbber-out` runs during `hold`,
-   handing the centre of the screen from the throbber to the wordmark; and
-   `reveal` runs during the morph, so the page is already arriving underneath
-   while the photograph is still shrinking into place.
+   Three of the beats overlap rather than follow. `throbber-out` runs during
+   `hold`, handing the centre of the screen from the throbber to the wordmark.
+   `name-out` and `round` start together, so the photograph begins to change at
+   the same moment the wordmark begins to clear rather than one waiting on the
+   other — `--intro-round-at` offsets the second against the first if the two
+   ever need pulling apart again. And `reveal` runs during the morph, so the
+   page is already arriving underneath while the photograph is still shrinking
+   into place.
 
    The clock only starts once the fonts are usable. Everything before that is
    red, with the throbber if the wait runs long.
@@ -111,12 +115,14 @@ body {
   --intro-throbber-in:  400ms;  /* wait before the throbber is worth showing */
   --intro-throbber-out: 250ms;  /* it leaving again, over the hold below */
   --intro-hold:         250ms;  /* red alone, before anything arrives */
-  --intro-name-in:     1850ms;  /* wordmark fading down into place */
+  --intro-name-in:     1300ms;  /* wordmark fading down into place */
   --intro-name-hold:    450ms;  /* wordmark alone on the red */
-  --intro-photo-in:    3300ms;  /* photograph rising behind it */
+  --intro-photo-in:    4300ms;  /* photograph rising behind it */
   --intro-photo-hold:   600ms;  /* both together */
-  --intro-name-out:     650ms;  /* wordmark leaving */
-  --intro-settle-hold:  200ms;  /* the photograph alone, before it moves */
+  --intro-name-out:    1000ms;  /* wordmark leaving */
+  --intro-round-at:       0ms;  /* how long after the wordmark starts leaving
+                                   the photograph starts changing; 0 runs the
+                                   two together */
   --intro-round:        700ms;  /* corners rounding off, still at full bleed */
   --intro-morph:       1500ms;  /* full bleed -> its place in the carousel */
   --intro-reveal:       900ms;  /* red clearing to show the page */
@@ -128,8 +134,9 @@ body {
      whole sequence out over an empty frame. */
   --intro-photo-wait: 8000ms;
 
+  /* Eased at both ends. Everything the sequence animates uses this, so the
+     whole opening moves to one curve. */
   --intro-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --intro-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   position: fixed;
   inset: 0;
@@ -246,11 +253,21 @@ body {
   white-space: nowrap;
   color: #fff;
 
-  /* Starts a little high and comes down as it arrives. */
+  /* How far it travels, both on the way in and on the way out. One value for
+     the pair so the two halves of the move cannot drift apart. */
+  --intro-name-shift: 0.35em;
+
+  /* Starts a little high and comes down as it arrives.
+
+     Both halves of the move share one curve, and it eases at both ends: the
+     wordmark gathers itself rather than snapping into motion, and settles
+     rather than stopping dead. Opacity used to run on the bare `ease` keyword
+     while the travel ran on a different curve entirely, which meant the fade
+     and the slide were never quite in step with each other. */
   opacity: 0;
-  transform: translateY(-0.35em);
-  transition: opacity var(--intro-name-in) ease,
-              transform var(--intro-name-in) var(--intro-ease-out);
+  transform: translateY(calc(var(--intro-name-shift) * -1));
+  transition: opacity var(--intro-name-in) var(--intro-ease),
+              transform var(--intro-name-in) var(--intro-ease);
 }
 
 .intro.is-name-in .intro__wordmark {
@@ -258,12 +275,15 @@ body {
   transform: none;
 }
 
-/* Leaves on opacity alone — it has arrived somewhere, and sliding it away
-   again would undo that. */
+/* Leaves the way it came: still heading down, rather than retreating back up
+   the way it arrived. Read end to end the wordmark drifts one way through the
+   whole sequence — down into place, and then on down and out — instead of
+   bouncing back to where it started. */
 .intro.is-name-out .intro__wordmark {
   opacity: 0;
-  transform: none;
-  transition: opacity var(--intro-name-out) ease;
+  transform: translateY(var(--intro-name-shift));
+  transition: opacity var(--intro-name-out) var(--intro-ease),
+              transform var(--intro-name-out) var(--intro-ease);
 }
 
 .intro__amp {
@@ -1001,7 +1021,7 @@ body {
   height: var(--marker);
   /* --rule is right for the hairline rail but too faint to read as a circle,
      so an unvisited marker borrows the muted text colour instead. */
-  border: 1px solid var(--ink-soft);
+  border: 2px solid var(--rail-line);
   border-radius: 50%;
   background: var(--paper);      /* masks the rail running behind it */
 

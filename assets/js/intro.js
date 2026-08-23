@@ -58,7 +58,7 @@
     photoIn:    ms('--intro-photo-in'),
     photoHold:  ms('--intro-photo-hold'),
     nameOut:    ms('--intro-name-out'),
-    settleHold: ms('--intro-settle-hold'),
+    roundAt:    ms('--intro-round-at'),
     round:      ms('--intro-round'),
     morph:      ms('--intro-morph'),
     reveal:     ms('--intro-reveal'),
@@ -303,7 +303,7 @@
      and the page gets handed over regardless. */
   hardStop = setTimeout(finish,
     T.hold + T.nameIn + T.nameHold + T.photoIn + T.photoHold +
-    T.nameOut + T.settleHold + T.round + T.morph + T.photoWait * 2 + 3000);
+    T.nameOut + T.roundAt + T.round + T.morph + T.photoWait * 2 + 3000);
 
   /* Motion from end to end, so there is no gentler version of this to play for
      anyone who has asked for less of it. Clear the red and hand over. */
@@ -351,11 +351,28 @@
     .then(function () {
       if (abandoned) return;
       intro.classList.add('is-name-out');
-      return wait(T.nameOut + T.settleHold);
-    })
 
-    // Corners first, while the photograph is still holding still at full bleed.
-    .then(function () { return abandoned ? null : roundCorners(); })
+      /* The photograph starts changing as the wordmark starts clearing rather
+         than waiting for it to finish. --intro-round-at is 0, so this is the
+         same frame; it exists so the two can be pulled apart again from the
+         stylesheet alone. */
+      var rounding = T.roundAt
+        ? wait(T.roundAt).then(function () { return abandoned ? null : roundCorners(); })
+        /* Called straight out rather than through wait(0): a zero timeout is
+           still a macrotask, and would put the corners a whole frame behind the
+           class that starts the wordmark fading. */
+        : roundCorners();
+
+      /* The morph then waits on *both*, so the photograph never starts moving
+         while the wordmark is still fading over it — even at 5% that is a
+         ghost of the type sliding across a photograph, which reads as a fault
+         rather than as a fade.
+
+         Which of the two runs longer depends entirely on how they are timed in
+         the stylesheet, and those numbers are meant to be played with, so
+         neither is assumed to be the slower one. */
+      return Promise.all([rounding, wait(T.nameOut)]);
+    })
 
     .then(function () { return abandoned ? null : morph(); })
     .then(finish, finish);
