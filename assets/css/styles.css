@@ -86,7 +86,7 @@ body {
    The beats run back to back, each one starting where the last finished:
 
      hold -> name-in -> name-hold -> photo-in -> photo-hold -> name-out
-          -> settle-hold -> round -> morph   (~10.5s in total)
+          -> settle-hold -> round -> morph   (~9.5s in total)
 
    `round` is a beat of its own, and deliberately so. It used to run inside the
    morph, which is where the eye cannot see it: 12px of corner arriving while
@@ -113,7 +113,7 @@ body {
   --intro-hold:         250ms;  /* red alone, before anything arrives */
   --intro-name-in:     1850ms;  /* wordmark fading down into place */
   --intro-name-hold:    450ms;  /* wordmark alone on the red */
-  --intro-photo-in:    4300ms;  /* photograph rising behind it */
+  --intro-photo-in:    3300ms;  /* photograph rising behind it */
   --intro-photo-hold:   600ms;  /* both together */
   --intro-name-out:     650ms;  /* wordmark leaving */
   --intro-settle-hold:  200ms;  /* the photograph alone, before it moves */
@@ -269,9 +269,63 @@ body {
 .intro__amp {
   font-family: var(--display);
   font-weight: 400;
-  font-size: 1.45em;
   font-size: clamp(1.75rem, 8.8vw, 6rem);
   color: #000;
+}
+
+/* On a narrow screen the wordmark stacks:
+
+     PETER &
+     CONSUELO
+
+   The block is only as wide as its longest line and centred in the page, while
+   the two lines inside it range left against each other — so "Peter &" sits
+   above the C of "Consuelo" rather than being centred over it.
+
+   Flex is dropped for block layout here on purpose. The break is forced by a
+   newline after the ampersand, and inside a flex row that newline would break
+   *within* the ampersand's own box instead of ending the line. As block, the
+   three spans are inline again, the newline ends the line as intended, and the
+   whitespace already between them in the markup does the spacing that `gap`
+   was doing. */
+@media (max-width: 600px) {
+  .intro__wordmark {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-inline: auto;
+    text-align: left;
+
+    /* As large as the width will allow. "CONSUELO" is the longer of the two
+       lines and measures 4.88em across in new-frank at this weight and
+       tracking, so dividing what is left of the viewport after a 30px gutter
+       either side by that figure gives the biggest the line can be set and
+       still clear both edges. 4.9 rather than 4.883 leaves a hair in hand.
+
+       The block is centred, so its own padding falls outside this sum: the
+       distance from the edge of the screen to the first letter works out as
+       (100vw - text) / 2 whatever the padding is. */
+    font-size: calc((100vw - 60px) / 4.9);
+
+    /* Two short lines of display type want far less leading than one long one
+       — `normal` leaves them reading as two separate thoughts rather than one
+       wordmark. A length rather than a number, so both lines are given the
+       same leading: a unitless value would be multiplied by the ampersand's
+       own larger size and open the first line back up. */
+    line-height: 0.92em;
+  }
+
+  /* Back to being sized off the names, so the ampersand keeps its proportion
+     as they grow. Its own clamp is tuned for the single-line layout and would
+     leave it stranded at a third of the size here. */
+  .intro__amp {
+    font-size: 1.25em;
+  }
+
+  .intro__amp::after {
+    content: '\A';
+    white-space: pre;
+  }
 }
 
 /* --------------------------------------------------------------------------
