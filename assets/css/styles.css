@@ -78,10 +78,10 @@ body {
 /* --------------------------------------------------------------------------
    Opening sequence
 
-   Four layers over the whole page: the red field, the photograph, the
-   wordmark, and nothing else. intro.js only ever adds the state classes below
-   and drives the final morph — every duration lives here, so the whole
-   sequence can be retimed without touching the script.
+   Four layers over the whole page: the red field, the photograph, the two
+   bands of woven trim, and the wordmark. intro.js only ever adds the state
+   classes below and drives the final morph — every duration lives here, so the
+   whole sequence can be retimed without touching the script.
 
    The beats run back to back, each one starting where the last finished:
 
@@ -127,6 +127,15 @@ body {
   --intro-morph:       1500ms;  /* full bleed -> its place in the carousel */
   --intro-reveal:       900ms;  /* red clearing to show the page */
   --intro-reveal-in:    300ms;  /* how far into the morph the red starts to go */
+
+  /* The trim starts with the wordmark at each end and then takes twice as long
+     over it, so the bands are still travelling after the names have settled
+     and still leaving after they have gone. Written against the wordmark's own
+     two figures rather than as 2600ms and 2000ms, so retiming the names keeps
+     the pair in proportion. Nothing in the sequence waits on these: they are
+     the one thing here that is free to overrun the beat it started on. */
+  --intro-trim-in:  calc(var(--intro-name-in) * 2);
+  --intro-trim-out: calc(var(--intro-name-out) * 2);
 
   /* How long the sequence will wait on a slow photograph before going ahead
      without it. The beats after this one chain off the photograph actually
@@ -346,6 +355,108 @@ body {
     content: '\A';
     white-space: pre;
   }
+}
+
+/* --- the trim ---
+
+   Two bands of the woven Guatemalan ribbon the wedding outfits are trimmed
+   with, one across the top of the red and one across the bottom. They ride the
+   wordmark's own two classes rather than beats of their own: the top band
+   drops in from above and the bottom band rises from below at the moment the
+   names begin to arrive, and both retreat the way they came as the names begin
+   to leave. One gesture, three pieces of it — starting together and drawn out
+   over twice the time, so the trim is the slow part of the move and the type
+   the quick one.
+
+   Each band travels diagonally — down and to the right at the top, up and to
+   the left at the bottom — so the pair reads as a single sweep opening the
+   screen rather than two shutters closing on it.
+
+   Neither end of a band may ever come into shot, which is what the width below
+   is for, and it has to hold for every frame of the travel and not just at
+   rest. That makes the width a consequence of the shift rather than a free
+   choice, and the depth a consequence of the width; see --intro-trim-width. */
+.intro__trim {
+  /* How far across a band drifts as it arrives, as a share of its own width. */
+  --intro-trim-shift: 20%;
+
+  /* Wide enough that the drift cannot drag either end into view: a band
+     overhangs the screen by (width - 100%) / 2 at each side, and that overhang
+     has to cover a shift of 20% of the width, so the width has to be at least
+     100% / (1 - 2 x 0.2) = 166.7%. 175% leaves a hair in hand. */
+  --intro-trim-width: 175%;
+
+  position: absolute;
+  z-index: 2;                     /* with the wordmark, over the photograph */
+  left: calc((100% - var(--intro-trim-width)) / 2);
+  width: var(--intro-trim-width);
+
+  /* Both files are cut to bleed off their own edge of the screen — flush along
+     the outside, the ragged woven edge along the inside — so the whole of each
+     one is meant to be seen. The depth is therefore not a choice: the ribbon is
+     2714 x 374, and at the width above that works out at 24.1% of the screen. */
+  height: auto;
+
+  /* Except on a window too short to seat two of them and the names between.
+     Wider than about 2.07:1 the bands would meet in the middle — an ultrawide
+     monitor, or a phone turned on its side — and the opening would be trim and
+     nothing else. Ordinary windows never reach this: 1400x900 asks for 338px
+     against a 378px ceiling, and 1920x1080 comes within 2% of it.
+
+     `cover` and the object-position below are only ever doing anything on the
+     windows where this bites, and what they do is send the crop to the flush
+     outer edge, which is against the side of the screen, rather than the woven
+     one facing the middle. */
+  max-height: 42vh;
+  object-fit: cover;
+
+  pointer-events: none;
+
+  /* A little depth under the inner edge, so a band sits over the red rather
+     than being cut out of it.
+
+     drop-shadow() rather than box-shadow because the edge that needs the
+     shadow is not a rectangle: the woven edge is ragged and feathers out over
+     the last few rows of the file, and drop-shadow follows the alpha, so the
+     shadow is the same ragged shape. A box-shadow would draw a straight line
+     under a crooked edge.
+
+     Only the inner edge is meant to show it. The offset pushes the shadow that
+     way and the blur is small enough that what spills the other way stays
+     inside the band or falls off the screen behind it. */
+  --intro-trim-shadow: 5px;
+  filter: drop-shadow(0 var(--intro-trim-shadow) 12px rgba(0, 0, 0, .3));
+
+  /* Off screen to begin with. Same curve as everything else in the sequence,
+     eased at both ends, so a band gathers itself rather than snapping into
+     motion and settles rather than stopping dead. */
+  transform: var(--intro-trim-off);
+  transition: transform var(--intro-trim-in) var(--intro-ease);
+}
+
+/* Where each band sits when it is away. Held as a custom property because the
+   way out is the way in run backwards, so the two states are the same value. */
+.intro__trim--top {
+  top: 0;
+  object-position: bottom;
+  --intro-trim-off: translate(calc(var(--intro-trim-shift) * -1), -100%);
+}
+
+.intro__trim--bottom {
+  bottom: 0;
+  object-position: top;
+  --intro-trim-shadow: -5px;      /* its inner edge is the one facing up */
+  --intro-trim-off: translate(var(--intro-trim-shift), 100%);
+}
+
+.intro.is-name-in .intro__trim { transform: none; }
+
+/* Unlike the wordmark, which carries on the way it was already going, the trim
+   reverses out: back up and left, back down and right. It came in off the
+   edges of the screen and that is where it belongs when it is not wanted. */
+.intro.is-name-out .intro__trim {
+  transform: var(--intro-trim-off);
+  transition-duration: var(--intro-trim-out);
 }
 
 /* --------------------------------------------------------------------------

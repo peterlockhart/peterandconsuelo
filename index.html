@@ -173,9 +173,10 @@
 <body>
 
 <!-- Opening sequence. Solid red from the first frame, the wordmark fades down
-     into it, the opening photograph rises behind the wordmark at full bleed,
-     and then that photograph settles into its place as the carousel's first
-     slide. intro.js drives the order; the timings all live in CSS.
+     into it between two bands of woven trim, the opening photograph rises
+     behind all three at full bleed, and then that photograph settles into its
+     place as the carousel's first slide. intro.js drives the order; the
+     timings all live in CSS.
 
      Only ever shown while <html> carries .is-intro, which script adds, so a
      browser with JavaScript off goes straight to the page. aria-hidden because
@@ -190,6 +191,15 @@
   <div class="intro__frame" data-intro-frame>
     <img class="intro__photo" data-intro-photo alt="" decoding="async" sizes="100vw">
   </div>
+
+  <!-- The woven Guatemalan ribbon the wedding outfits are trimmed with, run as
+       two bands across the top and bottom of the red. They arrive with the
+       wordmark and leave with it — see .intro__trim, which also explains why
+       both are drawn far wider than the screen. -->
+  <img class="intro__trim intro__trim--top" src="assets/img/trim-top.webp"
+       width="2714" height="374" alt="" decoding="async">
+  <img class="intro__trim intro__trim--bottom" src="assets/img/trim-bottom.webp"
+       width="2714" height="374" alt="" decoding="async">
 
   <p class="intro__wordmark">
     <span class="intro__word">Peter</span>
