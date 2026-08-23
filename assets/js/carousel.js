@@ -407,6 +407,25 @@
     if (e.key === 'Escape' && storyOpen) setStory(false);
   });
 
+  /* --------------------------------------------------------- handover */
+
   // Auto-moving content is opt-in for anyone who has asked for less motion.
-  reduceMotion ? pause() : play();
+  function start() {
+    reduceMotion ? pause() : play();
+  }
+
+  /* The opening sequence needs two things from here: somewhere to send the
+     photograph it has been holding full-bleed, and the word to let the
+     slideshow go. slideImage() is the <img> of whichever slide is showing —
+     during the intro that is always the first — and its rendered box is the
+     shape the intro photograph animates into. */
+  window.Carousel = {
+    start: start,
+    slideImage: function () { return slides[current]; }
+  };
+
+  // `.is-intro` is put on <html> inline in the head, so it is already there or
+  // already gone by the time this runs: either the sequence is playing and it
+  // will call start() when it finishes, or there is no sequence and we begin.
+  if (!document.documentElement.classList.contains('is-intro')) start();
 })();

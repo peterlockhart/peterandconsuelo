@@ -3,9 +3,15 @@
 Running list of things to change on the site. Add items under the section they
 belong to; move finished ones to **Done** with the date.
 
+## Intro
+
+- [ ] Add in wedding dress trim slide in on the top and bottom at a slight angle
+- [ ] Tighten up the letter-spacing on the intro words 
+
 ## Slideshow
 
 - [ ] When the carousel is playing, don't change the position of the thumbs until the user has stopped scrolling for 5 seconds. Right now, it feels like your fighting the auto scrolling of the thumbs if you're looking for another photo while the carousel is playing. 
+- [ ] Remove the blue focus outline on the play/pause button
 
 ## Our Story overlay
 
@@ -14,7 +20,7 @@ belong to; move finished ones to **Done** with the date.
 
 ## Header / branding
 
-- TBD
+- [ ] Remove the blue focus outline from the Our Story button since it doesn't match the theme
 
 ## Type & color
 
@@ -40,10 +46,9 @@ belong to; move finished ones to **Done** with the date.
 ## Misc
 
 - [ ] Create an Open Graph image
+- [ ] Update the favicon
 
 ## Ideas / maybe
-
-- Add a load in animation that shows just "Peter & Consuelo", then fades into a fullscreen photo of the first photo, and then that photo animates into the place of the first slide. 
 
 - Add a mini two-photo carousel on each story chapter image to switch between a photo of us and a photo of the location. 
 - Add a final chapter of "Today" that uses some dynamic copy based on the current dates (eg: after 6 and 2 months)
@@ -58,3 +63,4 @@ belong to; move finished ones to **Done** with the date.
 - [x] Fix border-radius on slide images 
 - [x] Add "This Will Be" with a mute/unmute button (built but hidden)
 - [x] Credit the photographer
+- [x] Add the opening load-in sequence (red field, wordmark, photo settling into the first slide)

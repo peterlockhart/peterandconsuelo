@@ -26,8 +26,16 @@
 <link rel="stylesheet" href="https://use.typekit.net/kto8ccm.css">
 <link rel="stylesheet" href="assets/css/styles.css">
 
-<!-- Hold the page behind the loading veil until the Typekit faces are ready to
-     use, so the type is only ever painted once.
+<!-- Raise the opening sequence before the first paint and settle the fonts.
+
+     `.is-intro` goes on <html> here rather than from intro.js so the red field
+     is already painted on the very first frame — a deferred script runs after
+     the parser has reached the end of the document, which is far too late to
+     stop a flash of the page underneath.
+
+     The Typekit faces are still waited on, but the wait now hides inside the
+     red: window.fontsReady is what holds the wordmark back until its real face
+     is usable, so the type is only ever painted once.
 
      This sits after the two stylesheets on purpose: a classic script does not
      run until the CSS above it has loaded, which is what puts the @font-face
@@ -35,33 +43,44 @@
 <script>
   (function () {
     var root = document.documentElement;
-    root.classList.add('is-loading');
+    root.classList.add('is-intro');
 
-    var lowered = false;
-    function lower() {
-      if (lowered) return;
-      lowered = true;
-      root.classList.remove('is-loading');
-    }
+    var settle;
+    window.fontsReady = new Promise(function (resolve) { settle = resolve; });
 
-    // Every combination the page actually sets. A face is only fetched once
-    // something asks for it, so naming them here starts the requests rather
-    // than waiting on the layout to reach the text.
+    // Every combination the opening sequence and the page actually set. A face
+    // is only fetched once something asks for it, so naming them here starts
+    // the requests rather than waiting on the layout to reach the text.
     var faces = ['300 1rem new-frank',
                  '800 1rem new-frank',
                  '400 1rem "dm-serif-display"'];
 
     // Whatever happens — an old browser, a kit that fails to load, a network
-    // that stalls — the page is handed over inside a second and a half and the
-    // fallback stack carries it. A veil that never lifts is the worse bug.
-    setTimeout(lower, 1500);
+    // that stalls — the sequence begins inside a second and a half and the
+    // fallback stack carries the wordmark.
+    setTimeout(settle, 1500);
 
-    if (!document.fonts || !document.fonts.load) { lower(); return; }
+    if (!document.fonts || !document.fonts.load) { settle(); }
+    else {
+      var pending = faces.map(function (face) { return document.fonts.load(face); });
+      Promise.all(pending)
+        .then(function () { return document.fonts.ready; })
+        .then(settle, settle);
+    }
 
-    var pending = faces.map(function (face) { return document.fonts.load(face); });
-    Promise.all(pending)
-      .then(function () { return document.fonts.ready; })
-      .then(lower, lower);
+    /* Failsafe, for the case where intro.js never loads or throws on its way
+       in: a curtain that never lifts is the worse bug, and inline code is the
+       only thing guaranteed to run.
+
+       intro.js clears this the moment it takes charge and arms its own, sized
+       to the sequence it is actually about to play. Otherwise a slow
+       photograph — which the sequence waits for on purpose — would trip a
+       fixed timer here and tear the curtain away mid-beat. */
+    window.introFailsafe = setTimeout(function () {
+      if (!root.classList.contains('is-intro')) return;
+      root.classList.remove('is-intro');
+      if (window.Carousel) window.Carousel.start();
+    }, 6000);
   })();
 </script>
 
@@ -126,6 +145,7 @@
 </script>
 
 <script src="assets/js/carousel.js" defer></script>
+<script src="assets/js/intro.js" defer></script>
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW782FZVES"></script>
@@ -140,10 +160,30 @@
 
 <body>
 
-<!-- Styled hidden and only shown while <html> carries .is-loading. -->
-<div class="loader" data-loader>
-  <div class="loader__ring" aria-hidden="true"></div>
-  <p class="visually-hidden" role="status">Loading&hellip;</p>
+<!-- Opening sequence. Solid red from the first frame, the wordmark fades down
+     into it, the opening photograph rises behind the wordmark at full bleed,
+     and then that photograph settles into its place as the carousel's first
+     slide. intro.js drives the order; the timings all live in CSS.
+
+     Only ever shown while <html> carries .is-intro, which script adds, so a
+     browser with JavaScript off goes straight to the page. aria-hidden because
+     every word of it is repeated in the header underneath. -->
+<div class="intro" data-intro aria-hidden="true">
+  <div class="intro__field"></div>
+
+  <!-- Only ever seen if the wait is long enough to be worth admitting to; see
+       .intro.is-waiting. It stands where the wordmark is about to arrive. -->
+  <div class="intro__throbber"></div>
+
+  <div class="intro__frame" data-intro-frame>
+    <img class="intro__photo" data-intro-photo alt="" decoding="async" sizes="100vw">
+  </div>
+
+  <p class="intro__wordmark">
+    <span class="intro__word">Peter</span>
+    <span class="intro__amp">&amp;</span>
+    <span class="intro__word">Consuelo</span>
+  </p>
 </div>
 
 <header class="site-header">

@@ -9,7 +9,6 @@
   --story-fade: 400ms;    /* story overlay fade */
   --story-delay: 250ms;   /* beat before the text follows the overlay in */
   --chapter-fade: 800ms;  /* unread -> active, slow enough to catch while scrolling */
-  --veil-fade: 450ms;     /* loading veil clearing off the page */
 
   /* Dark theme. Header, carousel and thumbnail rail all share --stage, so the
      chrome reads as one continuous surface with the photographs sitting on it.
@@ -24,6 +23,10 @@
   --ink-soft: #9b958d;
   --rule: #2c2a27;       /* hairline borders */
   --accent: hsl(0, 58%, 52%);
+
+  /* The field the opening sequence plays on. The accent is already the
+     one red on the page; the curtain is that same red at full strength. */
+  --intro-red: var(--accent);
 
 
   /* The timeline rail reads as a faint sibling of its markers rather than as a
@@ -72,58 +75,203 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   Loading veil
+   Opening sequence
 
-   Both faces come from Typekit, so an uncovered first paint sets the page in
-   the fallback stack and then reflows into new-frank and dm-serif-display a
-   moment later. The veil holds the page at the stage colour until the faces
-   are ready to use, then clears off.
+   Four layers over the whole page: the red field, the photograph, the
+   wordmark, and nothing else. intro.js only ever adds the state classes below
+   and drives the final morph — every duration lives here, so the whole
+   sequence can be retimed without touching the script.
 
-   It is hidden here and only shown once script puts .is-loading on <html>, so
-   a browser with JavaScript off never sits behind a veil that nothing is
-   coming to lift.
+   The beats run back to back, each one starting where the last finished:
+
+     hold -> name-in -> name-hold -> photo-in -> photo-hold -> name-out
+          -> settle-hold -> round -> morph   (~10.5s in total)
+
+   `round` is a beat of its own, and deliberately so. It used to run inside the
+   morph, which is where the eye cannot see it: 12px of corner arriving while
+   the photograph is racing down to a fifth of its size is arithmetic, not
+   animation. Standing still at full bleed, the same 12px reads clearly — the
+   photograph stops being the screen and becomes a card, and only then moves.
+   On a narrow screen the slide has no rounding to match, so the beat is
+   skipped and the sequence is that much shorter.
+
+   Two of them overlap rather than follow. `throbber-out` runs during `hold`,
+   handing the centre of the screen from the throbber to the wordmark; and
+   `reveal` runs during the morph, so the page is already arriving underneath
+   while the photograph is still shrinking into place.
+
+   The clock only starts once the fonts are usable. Everything before that is
+   red, with the throbber if the wait runs long.
    -------------------------------------------------------------------------- */
 
-.loader {
+.intro {
+  /* --- the timeline. Every value is a gap, not a clock time: change one and
+         everything after it simply moves along with it. --- */
+  --intro-throbber-in:  400ms;  /* wait before the throbber is worth showing */
+  --intro-throbber-out: 250ms;  /* it leaving again, over the hold below */
+  --intro-hold:         250ms;  /* red alone, before anything arrives */
+  --intro-name-in:     1850ms;  /* wordmark fading down into place */
+  --intro-name-hold:    450ms;  /* wordmark alone on the red */
+  --intro-photo-in:    4300ms;  /* photograph rising behind it */
+  --intro-photo-hold:   600ms;  /* both together */
+  --intro-name-out:     650ms;  /* wordmark leaving */
+  --intro-settle-hold:  200ms;  /* the photograph alone, before it moves */
+  --intro-round:        700ms;  /* corners rounding off, still at full bleed */
+  --intro-morph:       1500ms;  /* full bleed -> its place in the carousel */
+  --intro-reveal:       900ms;  /* red clearing to show the page */
+  --intro-reveal-in:    300ms;  /* how far into the morph the red starts to go */
+
+  /* How long the sequence will wait on a slow photograph before going ahead
+     without it. The beats after this one chain off the photograph actually
+     arriving, so a slow connection stretches the red rather than playing the
+     whole sequence out over an empty frame. */
+  --intro-photo-wait: 8000ms;
+
+  --intro-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --intro-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
   position: fixed;
   inset: 0;
-  z-index: 10;                   /* over the header, which is the top of the page stack */
-  display: grid;
+  z-index: 100;                  /* over the header, which is the top of the page stack */
   place-items: center;
-  background: var(--stage);
+  overflow: hidden;
 
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  /* Clearing off: the veil has to stay painted for the whole fade, so
-     visibility only flips once the opacity transition has finished. */
-  transition: opacity var(--veil-fade) ease,
-              visibility 0s linear var(--veil-fade);
+  /* Hidden until script says otherwise: with JavaScript off nothing is coming
+     to take this down again. */
+  display: none;
 }
 
-.is-loading .loader {
-  opacity: 1;
-  visibility: visible;
-  transition: none;              /* it is up from the first frame, never faded in */
+.is-intro .intro { display: grid; }
+
+/* The red itself. A layer of its own rather than a background on .intro,
+   because it has to fade out from under the photograph while the photograph
+   stays fully opaque. */
+.intro__field {
+  position: absolute;
+  inset: 0;
+  background: var(--intro-red);
+  transition: opacity var(--intro-reveal) ease;
 }
 
-.loader__ring {
-  width: 34px;
-  height: 34px;
-  border: 2px solid color-mix(in srgb, var(--ink-soft) 28%, transparent);
-  border-block-start-color: var(--accent);
+.intro.is-revealing .intro__field { opacity: 0; }
+
+/* --- the throbber ---
+
+   Up only while the page is genuinely still waiting on the Typekit faces, and
+   only once that wait has gone past --intro-throbber-in: a warm cache has them
+   within a few frames, and a throbber that appears and leaves again inside half
+   a second is its own flicker.
+
+   The spin runs from the first frame and never stops — it is the opacity alone
+   that comes and goes, so the ring is already turning at whatever speed by the
+   time anyone sees it, and it can be faded away mid-turn without a snap.
+
+   White ring, black quarter: the same two colours as the wordmark it is
+   standing in for, since the accent red is the field here. */
+.intro__throbber {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  z-index: 2;
+
+  width: 38px;
+  height: 38px;
+  border: 3px solid #fff;
+  border-block-start-color: #000;
   border-radius: 50%;
 
-  /* Starts invisible and fades in on a delay: a warm cache has the faces ready
-     within a few frames, and a throbber that appears and leaves again inside
-     half a second is its own flicker. */
   opacity: 0;
-  animation: loader-spin 900ms linear infinite,
-             loader-in 250ms ease 400ms forwards;
+  transition: opacity var(--intro-throbber-out) ease;
+  animation: intro-spin 900ms linear infinite;
 }
 
-@keyframes loader-spin { to { transform: rotate(1turn); } }
-@keyframes loader-in   { to { opacity: 1; } }
+.intro.is-waiting .intro__throbber {
+  opacity: 1;
+  transition: opacity var(--intro-throbber-in) ease;
+}
+
+@keyframes intro-spin { to { transform: rotate(1turn); } }
+
+/* --- the photograph ---
+
+   The frame is the viewport, and the photograph inside it is scaled to cover
+   that frame — `object-fit: contain` plus a scale, rather than `cover`,
+   because cover *crops*, and cropped pixels cannot be recovered by the morph
+   later on. Contain keeps the whole photograph in the element at all times and
+   lets the frame's clip decide how much of it shows, which is what makes the
+   full-bleed -> letterboxed move possible at all. See intro.js. */
+.intro__frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+
+  opacity: 0;
+  transition: opacity var(--intro-photo-in) ease;
+}
+
+.intro.is-photo-in .intro__frame { opacity: 1; }
+
+.intro__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  /* Set by intro.js once it knows the viewport: the factor that takes the
+     contained photograph up to covering the page. */
+  transform: scale(var(--intro-cover-scale, 1));
+}
+
+/* --- the wordmark ---
+
+   The page's own wordmark, set large and centred: the names in white, the
+   ampersand in black. The accent red it wears in the header is the field it is
+   standing on here, so the odd one out has to go the other way. */
+.intro__wordmark {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding-inline: 1rem;
+
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.35rem, 1.2vw, 0.85rem);
+
+  font-size: clamp(1.75rem, 8vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+
+  /* Starts a little high and comes down as it arrives. */
+  opacity: 0;
+  transform: translateY(-0.35em);
+  transition: opacity var(--intro-name-in) ease,
+              transform var(--intro-name-in) var(--intro-ease-out);
+}
+
+.intro.is-name-in .intro__wordmark {
+  opacity: 1;
+  transform: none;
+}
+
+/* Leaves on opacity alone — it has arrived somewhere, and sliding it away
+   again would undo that. */
+.intro.is-name-out .intro__wordmark {
+  opacity: 0;
+  transform: none;
+  transition: opacity var(--intro-name-out) ease;
+}
+
+.intro__amp {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.45em;
+  font-size: clamp(1.75rem, 7.8vw, 6rem);
+  color: #000;
+}
 
 /* --------------------------------------------------------------------------
    Header
@@ -148,15 +296,15 @@ body {
   margin: 0;
   font-size: clamp(1.05rem, 2.6vw, 1.45rem);
   font-weight: 800;
-  letter-spacing: 0.04em;
   white-space: nowrap;
   text-transform: uppercase;
+  letter-spacing: -.05em;
 }
 
 /* The two names are set heavy; the ampersand between them is the one place in
    the header the display serif appears. */
 .brand__amp {
-  font-size: clamp(1.05rem, 3vw, 2.45rem);
+  font-size: clamp(1.05rem, 2.5vw, 2.45rem);
   font-family: var(--display);
   font-weight: 400;
   color: var(--accent);
@@ -175,6 +323,7 @@ body {
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
+  font-weight: 400;
   transition: background-color 200ms ease, color 200ms ease;
 }
 
@@ -645,9 +794,9 @@ body {
 
 .story__heading {
   position: relative;            /* anchor for this chapter's marker */
-  margin: 2.25rem 0 0.85rem;
+  margin: 2.25rem 0 0.5rem;
   font-family: var(--display);
-  font-size: 1.3em;
+  font-size: 1.5em;
   font-weight: 400;
   letter-spacing: 0.03em;
 }
@@ -730,10 +879,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   :root {
     --fade: 1ms; --story-fade: 1ms; --story-delay: 0s; --chapter-fade: 1ms;
-    --veil-fade: 1ms;
   }
   * { scroll-behavior: auto !important; }
 
-  /* The ring still appears, it just no longer turns. */
-  .loader__ring { animation: loader-in 250ms ease 400ms forwards; }
+  /* The opening sequence is motion from end to end, so there is no reduced
+     version of it to play: intro.js skips straight to clearing the red, and
+     this is how long that takes. */
+  .intro { --intro-reveal: 300ms; }
+
+  /* The throbber is the one part that still runs, because the wait it reports
+     on happens either way. It just no longer turns. */
+  .intro__throbber { animation: none; }
 }
