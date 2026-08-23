@@ -303,6 +303,44 @@
   var storyBtn = document.querySelector('[data-story]');
   var storyEl = document.querySelector('[data-story-overlay]');
 
+  /* The last chapter is "Today", so its dateline has to be today rather than
+     whichever day it was written. Set in the same long US form as the fixed
+     datelines above it, and pinned to en-US rather than the visitor's locale:
+     left to resolve locally it would read "23 August 2026" directly beneath
+     "August 21, 2021", which looks like a mistake rather than a courtesy.
+     The date itself is the visitor's own, so "today" means their today. */
+  var todayEl = document.querySelector('[data-today]');
+  if (todayEl) {
+    todayEl.textContent = new Date().toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+
+  /* "...has yet to let him live down after 8+ years." Counted from the date on
+     the element to today, in whole anniversaries: dividing a span of
+     milliseconds by a 365.25-day year drifts, and all this wants is how many
+     times the fifth of January has come round. */
+  var sinceEl = document.querySelector('[data-since]');
+  if (sinceEl) {
+    /* Built from the parts rather than passed to the Date parser whole. A
+       bare 'YYYY-MM-DD' is read as UTC midnight, which anywhere west of
+       Greenwich is the evening BEFORE — so the count would tick over a day
+       early for most of the people reading this. */
+    var since = sinceEl.getAttribute('data-since').split('-');
+    var from = new Date(+since[0], +since[1] - 1, +since[2]);
+    var today = new Date();
+
+    var years = today.getFullYear() - from.getFullYear();
+
+    // The day has not come round yet this year, so the last one was last year.
+    if (today.getMonth() < from.getMonth() ||
+        (today.getMonth() === from.getMonth() && today.getDate() < from.getDate())) {
+      years--;
+    }
+
+    sinceEl.textContent = years + '+ year' + (years === 1 ? '' : 's');
+  }
+
   /* The chapter images stay src-less until the story is first opened.
      `loading="lazy"` cannot do this on its own: the panel is visibility:hidden
      but still sits at inset:0, so the browser counts the images as in-viewport
