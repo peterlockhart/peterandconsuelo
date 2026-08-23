@@ -6,7 +6,7 @@ belong to; move finished ones to **Done** with the date.
 ## Intro
 
 - [ ] Add in wedding dress trim slide in on the top and bottom at a slight angle
-- [ ] Tighten up the letter-spacing on the intro words 
+- [ ] On mobile (small width browsers), stake the intro words so the block of text is centered but the text is on two lines: Peter & / Consuelo
 
 ## Slideshow
 
@@ -64,3 +64,4 @@ belong to; move finished ones to **Done** with the date.
 - [x] Add "This Will Be" with a mute/unmute button (built but hidden)
 - [x] Credit the photographer
 - [x] Add the opening load-in sequence (red field, wordmark, photo settling into the first slide)
+- [x] Tighten up the letter-spacing on the intro words 
