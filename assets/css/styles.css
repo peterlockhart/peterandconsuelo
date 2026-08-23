@@ -333,6 +333,17 @@ body {
   color: var(--paper);
 }
 
+/* The browser's own focus ring is a blue that belongs to nothing else on the
+   page. Restated in the palette's own terms rather than switched off: the fill
+   above arrives on hover too, so on its own it cannot tell a keyboard user
+   that this is where focus now is. --ink reads against both the accent the
+   button fills with and the dark header it sits on, and the offset keeps the
+   ring clear of the pill instead of tracing its edge. */
+.story-button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
 /* --------------------------------------------------------------------------
    Carousel shell
    -------------------------------------------------------------------------- */
@@ -496,6 +507,21 @@ body {
 .control:focus-visible {
   background: color-mix(in srgb, var(--scrim) 78%, transparent);
   transform: scale(1.06);
+}
+
+/* Same reasoning as the "Our Story" button: the browser's blue belongs to
+   nothing else here, and the deepened scrim above cannot stand in for a focus
+   ring because hover reaches it too.
+
+   Drawn *inside* the disc, though, which is the difference. These controls
+   float over the photographs rather than over the theme, so a ring sitting
+   outside them would be laid on whatever happens to be behind — white on a
+   pale sky is no ring at all. Inset, it is always on the button's own scrim,
+   which at 78% black holds a white ring at full contrast over any photograph.
+   The outline follows the border-radius, so it reads as a circle. */
+.control:focus-visible {
+  outline: 2px solid var(--on-scrim);
+  outline-offset: -3px;
 }
 
 /* --- soundtrack toggle ---------------------------------------------------

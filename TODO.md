@@ -11,16 +11,16 @@ belong to; move finished ones to **Done** with the date.
 ## Slideshow
 
 - [ ] When the carousel is playing, don't change the position of the thumbs until the user has stopped scrolling for 5 seconds. Right now, it feels like your fighting the auto scrolling of the thumbs if you're looking for another photo while the carousel is playing. 
-- [ ] Remove the blue focus outline on the play/pause button
 
 ## Our Story overlay
 
 - [ ] Adjust the background color
 - [ ] Update the chapter copy in the paragraph tags.
+- [ ] Add a final chapter of "Today" that uses some dynamic copy based on the current dates (eg: after 6 and 2 months)
 
 ## Header / branding
 
-- [ ] Remove the blue focus outline from the Our Story button since it doesn't match the theme
+- [ ] 
 
 ## Type & color
 
@@ -29,7 +29,7 @@ belong to; move finished ones to **Done** with the date.
 
 ## Photos
 
-- [ ] Consider a different starter photo
+- [ ] 
 
 ## Performance
 
@@ -45,13 +45,11 @@ belong to; move finished ones to **Done** with the date.
 
 ## Misc
 
-- [ ] Create an Open Graph image
-- [ ] Update the favicon
+- [ ] 
 
 ## Ideas / maybe
 
 - Add a mini two-photo carousel on each story chapter image to switch between a photo of us and a photo of the location. 
-- Add a final chapter of "Today" that uses some dynamic copy based on the current dates (eg: after 6 and 2 months)
 - Consider ways to incorporate red and the trim pattern from Consuelo's dress. 
 
 ## Done
@@ -65,3 +63,7 @@ belong to; move finished ones to **Done** with the date.
 - [x] Credit the photographer
 - [x] Add the opening load-in sequence (red field, wordmark, photo settling into the first slide)
 - [x] Tighten up the letter-spacing on the intro words 
+- [x] Remove the blue focus outline from the Our Story button since it doesn't match the theme
+- [x] Remove the blue focus outline on the play/pause button
+- [x] Create an Open Graph image
+- [x] Update the favicon
