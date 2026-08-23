@@ -340,6 +340,9 @@ body {
   transition: background-color 200ms ease, transform 200ms ease;
 }
 
+/* `.control` sets a display, which would otherwise beat the UA `hidden` rule. */
+.control[hidden] { display: none; }
+
 .control:hover,
 .control:focus-visible {
   background: color-mix(in srgb, var(--scrim) 78%, transparent);
@@ -396,11 +399,38 @@ body {
   margin-inline-start: 3px;
 }
 
-.counter {
+/* --- counter and credit --------------------------------------------------
+
+   The pair sits bottom-left, mirroring the controls bottom-right. The row
+   stops short of those controls and wraps upward rather than into them, so a
+   narrow viewport lifts the credit onto its own line instead of overlapping.
+   ------------------------------------------------------------------------- */
+
+.stage__meta {
+  --meta-inset: clamp(0.75rem, 2vw, 1.25rem);
+
   position: absolute;
   z-index: 3;
-  inset-block-end: clamp(0.75rem, 2vw, 1.25rem);
-  inset-inline-start: clamp(0.75rem, 2vw, 1.25rem);
+  inset-block-end: var(--meta-inset);
+  inset-inline-start: var(--meta-inset);
+  /* Clear the 44px control opposite, plus the gutter on either side of it. */
+  inset-inline-end: calc(44px + var(--meta-inset) * 2);
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Bottom line first, extra lines stacked above it. */
+  flex-wrap: wrap-reverse;
+
+  /* Both children sit inside the "previous" click zone. The row itself lets
+     clicks through so the slideshow still steps back; only the credit link
+     takes them, and it opts back in below. */
+  pointer-events: none;
+}
+
+/* The glass pill both children are built on. */
+.counter,
+.credit {
   margin: 0;
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
@@ -408,12 +438,28 @@ body {
   color: var(--on-scrim);
   font-size: 0.75rem;
   letter-spacing: 0.06em;
-  font-variant-numeric: tabular-nums;
   backdrop-filter: blur(6px);
+}
 
-  /* Decorative, and it sits inside the "previous" click zone — a click that
-     lands on it should still step the slideshow back. */
-  pointer-events: none;
+.counter {
+  font-variant-numeric: tabular-nums;
+}
+
+.credit {
+  min-width: 0;   /* lets the pill shrink instead of pushing the row wider */
+}
+
+.credit a {
+  color: inherit;
+  pointer-events: auto;   /* the one thing in this row that is clickable */
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 200ms ease;
+}
+
+.credit a:hover,
+.credit a:focus-visible {
+  text-decoration-color: currentColor;
 }
 
 /* --------------------------------------------------------------------------

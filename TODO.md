@@ -5,8 +5,6 @@ belong to; move finished ones to **Done** with the date.
 
 ## Slideshow
 
-- [ ] Fix border-radius on slide images 
-- [ ] Credit the photographer
 - [ ] When the carousel is playing, don't change the position of the thumbs until the user has stopped scrolling for 5 seconds. Right now, it feels like your fighting the auto scrolling of the thumbs if you're looking for another photo while the carousel is playing. 
 
 ## Our Story overlay
@@ -46,7 +44,7 @@ belong to; move finished ones to **Done** with the date.
 ## Ideas / maybe
 
 - Add a load in animation that shows just "Peter & Consuelo", then fades into a fullscreen photo of the first photo, and then that photo animates into the place of the first slide. 
-- Add "This Will Be" with a mute/unmute button
+
 - Add a mini two-photo carousel on each story chapter image to switch between a photo of us and a photo of the location. 
 - Add a final chapter of "Today" that uses some dynamic copy based on the current dates (eg: after 6 and 2 months)
 - Consider ways to incorporate red and the trim pattern from Consuelo's dress. 
@@ -57,3 +55,6 @@ belong to; move finished ones to **Done** with the date.
 - [x] Add the ability to click on the left or right side of the carousel slides to go previous or next
 - [x] All caps Peter/Consuelo with larger ampersand
 - [x] Fix the initial flicker of the type when the fonts load
+- [x] Fix border-radius on slide images 
+- [x] Add "This Will Be" with a mute/unmute button (built but hidden)
+- [x] Credit the photographer

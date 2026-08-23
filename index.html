@@ -172,7 +172,10 @@
     <!-- The soundtrack toggle comes first so it sits to the left of the
          button that was already there. -->
     <div class="stage__controls">
-      <button class="control soundtrack" type="button" data-sound-toggle>
+      <!-- Hidden until there is a real soundtrack to offer. Drop the `hidden`
+           attribute to bring the toggle back; the wiring in carousel.js and
+           the styles below are all still in place. -->
+      <button class="control soundtrack" type="button" data-sound-toggle hidden>
         <svg class="soundtrack__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path class="soundtrack__cone" d="M4 9.5h3.8L12.5 5.5v13L7.8 14.5H4z"/>
           <!-- Waves while it is playing, a cross while it is silent. Only one
@@ -195,7 +198,15 @@
       </button>
     </div>
 
-    <p class="counter" aria-hidden="true"><span data-counter>1</span> / <span data-total>1</span></p>
+    <!-- Counter and photographer credit share one bottom-left row so they
+         can never collide, and so the row as a whole keeps clear of the
+         controls opposite it. -->
+    <div class="stage__meta">
+      <p class="counter" aria-hidden="true"><span data-counter>1</span> / <span data-total>1</span></p>
+      <p class="credit">Photos by
+        <a href="https://www.tylerfranzphotography.com" target="_blank" rel="noopener">Tyler Franz</a>
+      </p>
+    </div>
   </div>
 
   <div class="thumbs">
