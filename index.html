@@ -169,10 +169,31 @@
       <div class="stage__nav-zone" data-nav="next"></div>
     </div>
 
-    <button class="playpause" type="button" data-playpause>
-      <span class="playpause__icon" aria-hidden="true"></span>
-      <span class="visually-hidden" data-playpause-label>Pause slideshow</span>
-    </button>
+    <!-- The soundtrack toggle comes first so it sits to the left of the
+         button that was already there. -->
+    <div class="stage__controls">
+      <button class="control soundtrack" type="button" data-sound-toggle>
+        <svg class="soundtrack__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path class="soundtrack__cone" d="M4 9.5h3.8L12.5 5.5v13L7.8 14.5H4z"/>
+          <!-- Waves while it is playing, a cross while it is silent. Only one
+               of the two is ever shown; see [data-sound] on the carousel. -->
+          <g class="soundtrack__wave">
+            <path d="M15.8 9.6a3.4 3.4 0 0 1 0 4.8"/>
+            <path d="M18.2 7.2a6.8 6.8 0 0 1 0 9.6"/>
+          </g>
+          <g class="soundtrack__cross">
+            <path d="M16.2 9.8l4.6 4.4"/>
+            <path d="M20.8 9.8l-4.6 4.4"/>
+          </g>
+        </svg>
+        <span class="visually-hidden" data-sound-label>Unmute music</span>
+      </button>
+
+      <button class="control playpause" type="button" data-playpause>
+        <span class="playpause__icon" aria-hidden="true"></span>
+        <span class="visually-hidden" data-playpause-label>Pause slideshow</span>
+      </button>
+    </div>
 
     <p class="counter" aria-hidden="true"><span data-counter>1</span> / <span data-total>1</span></p>
   </div>
@@ -180,6 +201,12 @@
   <div class="thumbs">
     <ul class="thumbs__track" data-thumbs aria-label="Choose a photograph"></ul>
   </div>
+
+  <!-- Placeholder track — swap the file for the real one when it is chosen.
+       `preload="none"` keeps it off the wire entirely until someone asks for
+       it, and it is never started without a click, so nothing here trips an
+       autoplay policy. -->
+  <audio data-audio src="assets/audio/placeholder.mp3" loop preload="none"></audio>
 
 </main>
 

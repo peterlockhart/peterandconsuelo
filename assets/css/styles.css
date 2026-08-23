@@ -295,8 +295,8 @@ body {
    -------------------------------------------------------------------------- */
 
 /* Half the stage each, over the slides. z-index matches the floating controls
-   rather than beating them: the play/pause button comes later in the source,
-   so at an equal z-index it paints on top and keeps its own hit area. */
+   rather than beating them: the controls come later in the source, so at an
+   equal z-index they paint on top and keep their own hit areas. */
 .stage__nav {
   position: absolute;
   inset: 0;
@@ -313,11 +313,19 @@ body {
    Floating controls
    -------------------------------------------------------------------------- */
 
-.playpause {
+/* The row sits where the lone play/pause button used to. The gap is wide
+   enough that the two 44px targets never blur into one control. */
+.stage__controls {
   position: absolute;
   z-index: 3;
   inset-block-end: clamp(0.75rem, 2vw, 1.25rem);
   inset-inline-end: clamp(0.75rem, 2vw, 1.25rem);
+  display: flex;
+  gap: 10px;
+}
+
+/* The round glass button both controls are built on. */
+.control {
   display: grid;
   place-items: center;
   width: 44px;
@@ -332,10 +340,43 @@ body {
   transition: background-color 200ms ease, transform 200ms ease;
 }
 
-.playpause:hover,
-.playpause:focus-visible {
+.control:hover,
+.control:focus-visible {
   background: color-mix(in srgb, var(--scrim) 78%, transparent);
   transform: scale(1.06);
+}
+
+/* --- soundtrack toggle ---------------------------------------------------
+
+   One icon, two states: the cone is always drawn, and the waves and the cross
+   swap places. Both are in the markup and only their opacity changes, so the
+   glyph never reflows and the crossfade matches the play/pause morph.
+   ------------------------------------------------------------------------- */
+
+.soundtrack__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.soundtrack__cone { fill: currentColor; }
+
+.soundtrack__wave path,
+.soundtrack__cross path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.soundtrack__wave { opacity: 0; }
+.soundtrack__cross { opacity: 1; }
+
+.carousel[data-sound="on"] .soundtrack__wave { opacity: 1; }
+.carousel[data-sound="on"] .soundtrack__cross { opacity: 0; }
+
+.soundtrack__wave,
+.soundtrack__cross {
+  transition: opacity 160ms ease;
 }
 
 /* Pause glyph: two bars, drawn with a border. Flips to a triangle when paused. */

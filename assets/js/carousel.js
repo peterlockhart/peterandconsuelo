@@ -195,6 +195,53 @@
     playing ? pause() : play();
   });
 
+  /* ------------------------------------------------------------ soundtrack */
+
+  /* Silent until it is asked for, every visit: a page that makes noise before
+     anyone has clicked is both blocked by autoplay policy and rude. The
+     <audio> is preload="none", so the file is not even fetched until then. */
+  var audio    = document.querySelector('[data-audio]');
+  var soundBtn = document.querySelector('[data-sound-toggle]');
+  var soundTxt = document.querySelector('[data-sound-label]');
+
+  if (audio && soundBtn && soundTxt) {
+    var sound = false;
+
+    function setSound(on) {
+      sound = on;
+      carousel.dataset.sound = on ? 'on' : 'off';
+      soundTxt.textContent = on ? 'Mute music' : 'Unmute music';
+    }
+
+    setSound(false);
+
+    soundBtn.addEventListener('click', function () {
+      if (sound) {
+        // pause() rather than stopping: the track picks up where it left off,
+        // which is what a mute button is expected to do.
+        audio.pause();
+        setSound(false);
+        return;
+      }
+
+      setSound(true);
+      var started = audio.play();   // a click, so the browser lets it start
+
+      // Older browsers return nothing here; the ones that return a promise
+      // reject it if the file will not play, and the UI has to go back.
+      if (started && started.catch) {
+        started.catch(function () { setSound(false); });
+      }
+    });
+
+    // A file that is missing or unplayable should not leave a control on the
+    // page that does nothing when pressed.
+    audio.addEventListener('error', function () {
+      setSound(false);
+      soundBtn.hidden = true;
+    });
+  }
+
   /* Click zones over the photograph — left half back, right half forward.
      go() takes the index modulo the run, so both ends wrap and the carousel
      loops in either direction. restart() gives the incoming slide a full turn
