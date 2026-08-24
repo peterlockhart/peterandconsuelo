@@ -393,21 +393,21 @@ body {
 
   /* Both files are cut to bleed off their own edge of the screen — flush along
      the outside, the ragged woven edge along the inside — so the whole of each
-     one is meant to be seen. The depth is therefore not a choice: the ribbon is
-     2714 x 374, and at the width above that works out at 24.1% of the screen. */
+     one is meant to be seen, and the depth follows from the width rather than
+     being chosen: the ribbon is 2714 x 374, so a band is 24.1% of the screen
+     across. On a phone that is a trim. On a desktop it is a mural. */
   height: auto;
 
-  /* Except on a window too short to seat two of them and the names between.
-     Wider than about 2.07:1 the bands would meet in the middle — an ultrawide
-     monitor, or a phone turned on its side — and the opening would be trim and
-     nothing else. Ordinary windows never reach this: 1400x900 asks for 338px
-     against a 378px ceiling, and 1920x1080 comes within 2% of it.
+  /* So it is allowed to be the whole ribbon only up to a point. 150px is where
+     a band stops growing, which on the 24.1% above is a screen about 620px
+     across — so every phone shows the ribbon entire and every window wider
+     than a phone shows the same 150px band, however wide it gets.
 
-     `cover` and the object-position below are only ever doing anything on the
-     windows where this bites, and what they do is send the crop to the flush
-     outer edge, which is against the side of the screen, rather than the woven
-     one facing the middle. */
-  max-height: 42vh;
+     The crop that buys this is the reason for `cover` and the object-position
+     below: it comes off the flush outer edge, which is hard against the side
+     of the screen, and never off the woven edge facing the middle. */
+  --intro-trim-max: 150px;
+  max-height: var(--intro-trim-max);
   object-fit: cover;
 
   pointer-events: none;
