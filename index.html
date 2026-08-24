@@ -29,7 +29,10 @@
 <meta name="twitter:image:alt" content="Peter and Consuelo on their wedding day, with their names across the photograph">
 
 <meta name="theme-color" content="#0c0b0a">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png">
+<!-- ?v2 is a cache-buster, nothing the server reads: browsers hold on to a
+     favicon hard, and a new file at the same URL can go unnoticed for days.
+     Bump it whenever the artwork changes. -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png?v2">
 <!-- iOS adds its own rounded mask and its own gloss; the file is just the
      artwork, at the 180px it wants. -->
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
