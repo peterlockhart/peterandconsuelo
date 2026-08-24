@@ -5,16 +5,16 @@ belong to; move finished ones to **Done** with the date.
 
 ## Intro
 
-- [ ] Add in wedding dress trim slide in on the top and bottom at a slight angle
+- [ ] 
 
 
 ## Slideshow
 
-- [ ] When the carousel is playing, don't change the position of the thumbs until the user has stopped scrolling for 5 seconds. Right now, it feels like your fighting the auto scrolling of the thumbs if you're looking for another photo while the carousel is playing. 
+- [ ] 
 
 ## Our Story overlay
 
-- [ ] Adjust the background color
+- [ ] 
 
 ## Header / branding
 
@@ -22,8 +22,7 @@ belong to; move finished ones to **Done** with the date.
 
 ## Type & color
 
-- [ ] Finalize the typography
-- [ ] Finalize the color pallete
+- [ ] 
 
 ## Photos
 
@@ -47,7 +46,7 @@ belong to; move finished ones to **Done** with the date.
 
 ## Ideas / maybe
 
-- Consider ways to incorporate red and the trim pattern from Consuelo's dress. 
+- [ ] 
 
 ## Done
 
@@ -69,3 +68,7 @@ belong to; move finished ones to **Done** with the date.
 - [x] Add a mini two-photo carousel on each story chapter image to switch between a photo of us and a photo of the location. 
 - [x] On mobile (small width browsers), stack the intro words so the block of text is centered but the text within it is on left aligned and broken into two lines: Peter & / Consuelo
 - [x] When Peter & Consuelo fade out of the intro, also animate the text to slide down slightly.
+- [x] When the carousel is auto playing, if the user has scrolled the thumbnails, wait 5 seconds until no scroll events have happened before the thumbnails start automatically scrolling to align with the advancement of the autoplaying slides. Right now, it feels like you're fighting the auto scrolling of the thumbs if you're looking for another photo while the carousel is playing. 
+- [x] Add in wedding dress trim slide in on the top and bottom at a slight angle
+- [x] Finalize the typography
+- [x] Finalize the color pallete
