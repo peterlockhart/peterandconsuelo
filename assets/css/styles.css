@@ -386,66 +386,85 @@ body {
      100% / (1 - 2 x 0.2) = 166.7%. 175% leaves a hair in hand. */
   --intro-trim-width: 175%;
 
+  /* A band stops growing at 150px, which on the 24.1% below is a screen about
+     620px across — so every phone shows the ribbon entire and every window
+     wider than a phone shows the same 150px band, however wide it gets. */
+  --intro-trim-max: 150px;
+
+  /* Which end of the ribbon survives the crop that buys that, and which way the
+     shadow falls. Both are the top band's; .intro__trim--bottom flips them.
+     Custom properties because they are used on the image inside and neither
+     `object-position` nor `filter` inherits, but a custom property does. */
+  --intro-trim-anchor: bottom;
+  --intro-trim-shadow: 5px;
+
   position: absolute;
   z-index: 2;                     /* with the wordmark, over the photograph */
   left: calc((100% - var(--intro-trim-width)) / 2);
   width: var(--intro-trim-width);
-
-  /* Both files are cut to bleed off their own edge of the screen — flush along
-     the outside, the ragged woven edge along the inside — so the whole of each
-     one is meant to be seen, and the depth follows from the width rather than
-     being chosen: the ribbon is 2714 x 374, so a band is 24.1% of the screen
-     across. On a phone that is a trim. On a desktop it is a mural. */
-  height: auto;
-
-  /* So it is allowed to be the whole ribbon only up to a point. 150px is where
-     a band stops growing, which on the 24.1% above is a screen about 620px
-     across — so every phone shows the ribbon entire and every window wider
-     than a phone shows the same 150px band, however wide it gets.
-
-     The crop that buys this is the reason for `cover` and the object-position
-     below: it comes off the flush outer edge, which is hard against the side
-     of the screen, and never off the woven edge facing the middle. */
-  --intro-trim-max: 150px;
-  max-height: var(--intro-trim-max);
-  object-fit: cover;
-
   pointer-events: none;
-
-  /* A little depth under the inner edge, so a band sits over the red rather
-     than being cut out of it.
-
-     drop-shadow() rather than box-shadow because the edge that needs the
-     shadow is not a rectangle: the woven edge is ragged and feathers out over
-     the last few rows of the file, and drop-shadow follows the alpha, so the
-     shadow is the same ragged shape. A box-shadow would draw a straight line
-     under a crooked edge.
-
-     Only the inner edge is meant to show it. The offset pushes the shadow that
-     way and the blur is small enough that what spills the other way stays
-     inside the band or falls off the screen behind it. */
-  --intro-trim-shadow: 5px;
-  filter: drop-shadow(0 var(--intro-trim-shadow) 12px rgba(0, 0, 0, .3));
 
   /* Off screen to begin with. Same curve as everything else in the sequence,
      eased at both ends, so a band gathers itself rather than snapping into
-     motion and settles rather than stopping dead. */
+     motion and settles rather than stopping dead.
+
+     The wrapper is the half of the band that moves and the image inside is the
+     half that is filtered, and those two jobs are kept on two elements on
+     purpose — see the image rule below. will-change so the layer is promoted
+     now rather than in the frame the travel starts. */
   transform: var(--intro-trim-off);
   transition: transform var(--intro-trim-in) var(--intro-ease);
+  will-change: transform;
+}
+
+/* Everything about what a band looks like, on an element that never moves.
+
+   That split is not tidiness, it is the fix for a real artifact: an element
+   carrying a filter *and* an accelerated transform has to have its filter
+   rasterized again as it travels, and iOS does that into a buffer whose bounds
+   and precision were settled once — so the blur below came apart into a hard
+   line across the screen every time a band retreated. Filtering an element the
+   compositor only ever translates means the shadow is drawn once, properly, and
+   then simply moved. Do not merge this rule back into the wrapper.
+
+   Both files are cut to bleed off their own edge of the screen — flush along
+   the outside, the ragged woven edge along the inside — so the whole of each
+   one is meant to be seen, and the depth follows from the width rather than
+   being chosen: the ribbon is 2714 x 374, so a band is 24.1% of the screen
+   across. On a phone that is a trim. On a desktop it is a mural, hence the cap,
+   and hence `cover` — the crop it takes comes off the flush outer edge, hard
+   against the side of the screen, and never off the woven edge facing in.
+
+   drop-shadow() rather than box-shadow because the edge that needs the shadow
+   is not a rectangle: the woven edge is ragged and feathers out over the last
+   few rows of the file, and drop-shadow follows the alpha, so the shadow is the
+   same ragged shape. A box-shadow would draw a straight line under a crooked
+   edge. Only the inner edge is meant to show it — the offset pushes the shadow
+   that way and the blur is small enough that what spills the other way stays
+   inside the band or falls off the screen behind it. */
+.intro__trim img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: var(--intro-trim-max);
+  object-fit: cover;
+  object-position: var(--intro-trim-anchor);
+
+  filter: drop-shadow(0 var(--intro-trim-shadow) 12px rgba(0, 0, 0, .3));
+  transform: translateZ(0);       /* a layer of its own, rasterized once */
 }
 
 /* Where each band sits when it is away. Held as a custom property because the
    way out is the way in run backwards, so the two states are the same value. */
 .intro__trim--top {
   top: 0;
-  object-position: bottom;
   --intro-trim-off: translate(calc(var(--intro-trim-shift) * -1), -100%);
 }
 
 .intro__trim--bottom {
   bottom: 0;
-  object-position: top;
-  --intro-trim-shadow: -5px;      /* its inner edge is the one facing up */
+  --intro-trim-anchor: top;       /* its woven edge is the one facing up */
+  --intro-trim-shadow: -5px;      /* so the shadow falls that way too */
   --intro-trim-off: translate(var(--intro-trim-shift), 100%);
 }
 
